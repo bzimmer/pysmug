@@ -42,7 +42,7 @@ def login(conf=None):
   exec fp in mod.__dict__
   return SmugMug.login_withPassword(mod.username, mod.password, mod.apikey)
 
-def _new_request(args):
+def _new_connection(args):
   c = pycurl.Curl()
   c.args = args
   c.setopt(c.USERAGENT, userAgent)
@@ -69,7 +69,7 @@ def _make_handler(instance, method, func):
     query = url % urllib.urlencode(args)
     logging.debug(query)
 
-    c = _new_request(args)
+    c = _new_connection(args)
     c.setopt(c.URL, query)
 
     return func(c)
@@ -171,7 +171,7 @@ class SmugMug(object):
       "X-Smug-SessionID: " + self._sessionId,
     ]
 
-    c = _new_request({"SessionID":self._sessionId,
+    c = _new_connection({"SessionID":self._sessionId,
       "FileName":FileName, "ImageID":ImageID, "AlbumID":AlbumID})
     c.setopt(c.URL, url)
     c.setopt(c.UPLOAD, True)
