@@ -12,12 +12,22 @@ import pycurl
 import urllib
 import logging
 import cStringIO
+from itertools import islice
 
 __all__ = ('login', 'BatchSmugMug', 'SmugMug', 'SmugMugException', '__version__')
 
 __version__ = '0.1'
 
 userAgent = "pysmug(%s)" % (__version__)
+
+curlinfo = (
+  ("total-time", pycurl.TOTAL_TIME),
+  ("upload-speed", pycurl.SPEED_UPLOAD),
+  ("download-speed", pycurl.SPEED_DOWNLOAD)
+)
+
+def take(n, seq):
+  return list(islice(seq, n))
 
 def login(conf=None):
   if not conf:
@@ -32,31 +42,35 @@ def login(conf=None):
   exec fp in mod.__dict__
   return SmugMug.login_withPassword(mod.username, mod.password, mod.apikey)
 
+def _new_request(args):
+  c = pycurl.Curl()
+  c.args = args
+  c.setopt(c.USERAGENT, userAgent)
+  c.response = cStringIO.StringIO()
+  c.setopt(c.WRITEFUNCTION, c.response.write)
+  return c
+
 def _make_handler(instance, method, func):
   # Construct the method name and URL
   method = "smugmug." + method.replace("_", ".")
   url = "http://api.smugmug.com/services/api/json/1.2.1/?%s"
   
   def handler(**args):
-    '''Dynamically created handler for a SmugMug API call'''
-    # Set some defaults
+    """Dynamically created handler for a SmugMug API call."""
     sessionId = getattr(instance, "_sessionId", None)
     defaults = {"method": method, "SessionID":sessionId}
     for key, value in defaults.iteritems():
       if key not in args:
         args[key] = value
-      # Remove a default by assigning None
+      # remove a default by assigning None
       if key in args and args[key] is None:
         del args[key]
 
     query = url % urllib.urlencode(args)
     logging.debug(query)
 
-    c = pycurl.Curl()
+    c = _new_request(args)
     c.setopt(c.URL, query)
-    c.response = cStringIO.StringIO()
-    c.setopt(c.USERAGENT, userAgent)
-    c.setopt(c.WRITEFUNCTION, c.response.write)
 
     return func(c)
   
@@ -64,7 +78,7 @@ def _make_handler(instance, method, func):
 
 class SmugMugException(Exception):
   def __init__(self, code, message):
-    super(Exception, self).__init__(message)
+    super(SmugMugException, self).__init__(message)
     self.code = code
 
 class SmugMug(object):
@@ -92,8 +106,7 @@ class SmugMug(object):
     resp = cjson.decode(json)
     if not resp["stat"] == "ok":
       raise SmugMugException(resp["code"], resp["message"])
-    stats = dict([("total-time", c.getinfo(c.TOTAL_TIME)), ("upload-speed", c.getinfo(c.SPEED_UPLOAD))])
-    resp["Statistics"] = stats
+    resp["Statistics"] = dict(((key, c.getinfo(const)) for key, const in curlinfo))
     return resp
   
   @classmethod
@@ -158,15 +171,13 @@ class SmugMug(object):
       "X-Smug-SessionID: " + self._sessionId,
     ]
 
-    c = pycurl.Curl()
+    c = _new_request({"SessionID":self._sessionId,
+      "FileName":FileName, "ImageID":ImageID, "AlbumID":AlbumID})
     c.setopt(c.URL, url)
     c.setopt(c.UPLOAD, True)
     c.setopt(c.HTTPHEADER, headers)
-    c.setopt(c.USERAGENT, userAgent)
     c.setopt(c.INFILESIZE, len(Data))
     c.setopt(c.READFUNCTION, image.read)
-    c.response = cStringIO.StringIO()
-    c.setopt(c.WRITEFUNCTION, c.response.write)
     
     return self._perform(c)
 
@@ -184,20 +195,25 @@ class BatchSmugMug(SmugMug):
   def _perform(self, c):
     self._batch.append(c)
     return None
+
+  def __len__(self):
+    return len(self._batch)
   
-  def __call__(self):
+  def __call__(self, n=35):
+    """Execute all events in batch using at most n simulatenous connections."""
     if not self._batch:
       raise SmugMugException(0, "no pending events")
 
-    def f(_batch):
+    def f(batch):
       m = pycurl.CurlMulti()
-      #m.setopt(pycurl.M_PIPELINING, 1)
 
-      for c in _batch:
-        m.add_handle(c)
-      
-      processed = len(_batch)
-      while processed > 0:
+      ibatch = iter(batch)
+      total, working = len(batch), 0
+
+      while total > 0:
+        for c in take((n-working), ibatch):
+          m.add_handle(c)
+          working += 1
         while True:
           ret, nhandles = m.perform()
           if ret != pycurl.E_CALL_MULTI_PERFORM:
@@ -206,22 +222,24 @@ class BatchSmugMug(SmugMug):
           q, ok, err = m.info_read()
           for c in ok:
             m.remove_handle(c)
-            yield self._handle_response(c)
+            yield (c.args, self._handle_response(c))
           for c, errno, errmsg in err:
             m.remove_handle(c)
-            yield self._handle_response(c)
-          processed -= len(ok) + len(err)
+            yield (c.args, self._handle_response(c))
+          read = len(ok) + len(err)
+          total -= read
+          working -= read
           if q == 0:
             break
         m.select(1.0)
 
-      while _batch:
+      while batch:
         try:
-          _batch.pop().close()
+          batch.pop().close()
         except: pass
 
     try:
       return f(self._batch[:])
     finally:
-      self._batch = None
+      self._batch = list()
 
