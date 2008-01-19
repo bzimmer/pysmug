@@ -42,9 +42,11 @@ def login(conf=None):
   exec fp in mod.__dict__
   return SmugMug.login_withPassword(mod.username, mod.password, mod.apikey)
 
-def _new_connection(args):
+def _new_connection(url, args):
   c = pycurl.Curl()
   c.args = args
+  c.setopt(c.URL, url)
+  logging.debug(url)
   c.setopt(c.USERAGENT, userAgent)
   c.response = cStringIO.StringIO()
   c.setopt(c.WRITEFUNCTION, c.response.write)
@@ -65,13 +67,8 @@ def _make_handler(instance, method, func):
       # remove a default by assigning None
       if key in args and args[key] is None:
         del args[key]
-
     query = url % urllib.urlencode(args)
-    logging.debug(query)
-
-    c = _new_connection(args)
-    c.setopt(c.URL, query)
-
+    c = _new_connection(query, args)
     return func(c)
   
   return handler
@@ -171,9 +168,8 @@ class SmugMug(object):
       "X-Smug-SessionID: " + self._sessionId,
     ]
 
-    c = _new_connection({"SessionID":self._sessionId,
+    c = _new_connection(url, {"SessionID":self._sessionId,
       "FileName":FileName, "ImageID":ImageID, "AlbumID":AlbumID})
-    c.setopt(c.URL, url)
     c.setopt(c.UPLOAD, True)
     c.setopt(c.HTTPHEADER, headers)
     c.setopt(c.INFILESIZE, len(Data))
