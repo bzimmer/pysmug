@@ -40,57 +40,56 @@ def login(conf=None):
   mod = types.ModuleType("smuglibrc")
   fp = open(conf)
   exec fp in mod.__dict__
-  return SmugMug.login_withPassword(mod.username, mod.password, mod.apikey)
-
-def _new_connection(url, args):
-  c = pycurl.Curl()
-  c.args = args
-  c.setopt(c.URL, url)
-  logging.debug(url)
-  c.setopt(c.USERAGENT, userAgent)
-  c.response = cStringIO.StringIO()
-  c.setopt(c.WRITEFUNCTION, c.response.write)
-  return c
-
-def _make_handler(instance, method, func):
-  # Construct the method name and URL
-  method = "smugmug." + method.replace("_", ".")
-  url = "http://api.smugmug.com/services/api/json/1.2.1/?%s"
-  
-  def handler(**args):
-    """Dynamically created handler for a SmugMug API call."""
-    sessionId = getattr(instance, "_sessionId", None)
-    defaults = {"method": method, "SessionID":sessionId}
-    for key, value in defaults.iteritems():
-      if key not in args:
-        args[key] = value
-      # remove a default by assigning None
-      if key in args and args[key] is None:
-        del args[key]
-    query = url % urllib.urlencode(args)
-    c = _new_connection(query, args)
-    return func(c)
-  
-  return handler
+  return SmugMug().login_withPassword(mod.username, mod.password, mod.apikey)
 
 class SmugMugException(Exception):
-  def __init__(self, code, message):
+  def __init__(self, message, code=0):
     super(SmugMugException, self).__init__(message)
     self.code = code
 
 class SmugMug(object):
-  def __init__(self, sessionId):
-    self._sessionId = sessionId
+  def __init__(self, sessionId=None):
+    self.sessionId = sessionId
 
-  @classmethod
-  def login_withPassword(cls, username, password, apiKey):
-    """Login into the smugmug service with username, password and API key."""
-    login = _make_handler(cls, "login_withPassword", SmugMug.__perform)
-    session = login(EmailAddress=username, Password=password, APIKey=apiKey)
-    return SmugMug(session['Login']['Session']['id'])
+  def __getattr__(self, method):
+    """Construct a dynamic handler for the smugmug api."""
+    # Refuse to act as a proxy for unimplemented special methods
+    if method.startswith('__'):
+      raise AttributeError("No such attribute '%s'" % method)
+    return self._make_handler(method)
 
-  @classmethod
-  def _handle_response(cls, c):
+  def _make_handler(self, method):
+    method = "smugmug." + method.replace("_", ".")
+    url = "http://api.smugmug.com/services/api/json/1.2.1/?%s"
+    
+    def handler(**args):
+      """Dynamically created handler for a SmugMug API call."""
+      defaults = {"method": method, "SessionID":self.sessionId}
+      for key, value in defaults.iteritems():
+        if key not in args:
+          args[key] = value
+        # remove a default by assigning None
+        if key in args and args[key] is None:
+          del args[key]
+      if "SessionID" in args and args["SessionID"] is None:
+        raise SmugMugException("not authenticated -- no valid session id")
+      query = url % urllib.urlencode(args)
+      c = self._new_connection(query, args)
+      return self._perform(c)
+    
+    return handler
+
+  def _new_connection(self, url, args):
+    c = pycurl.Curl()
+    c.args = args
+    c.setopt(c.URL, url)
+    logging.debug(url)
+    c.setopt(c.USERAGENT, userAgent)
+    c.response = cStringIO.StringIO()
+    c.setopt(c.WRITEFUNCTION, c.response.write)
+    return c
+
+  def _handle_response(self, c):
     """Read the response, convert it to a pythonic instance and check
     the error code to ensure the operation was successful.
     """
@@ -102,33 +101,29 @@ class SmugMug(object):
     logging.debug(json)
     resp = cjson.decode(json)
     if not resp["stat"] == "ok":
-      raise SmugMugException(resp["code"], resp["message"])
+      raise SmugMugException(resp["message"], resp["code"])
     resp["Statistics"] = dict(((key, c.getinfo(const)) for key, const in curlinfo))
     return resp
-  
-  @classmethod
-  def __perform(cls, c):
+
+  def _perform(self, c):
     """Perform the low-level communication with smugmug."""
     try:
       c.perform()
-      return cls._handle_response(c)
+      return self._handle_response(c)
     finally:
       c.close()
 
-  def __getattr__(self, method):
-    """Construct a dynamic handler for the smugmug api."""
-    # Refuse to act as a proxy for unimplemented special methods
-    if method.startswith('__'):
-      raise AttributeError("No such attribute '%s'" % method)
-    return _make_handler(self, method, self._perform)
-
   def batch(self):
     """Return an instance of a batch-oriented smugmug client."""
-    return BatchSmugMug(self._sessionId)
+    return BatchSmugMug(self.sessionId)
 
-  def _perform(self, c):
-    """Execute the http request."""
-    return SmugMug.__perform(c)
+  def login_withPassword(self, username, password, apiKey):
+    """Login into the smugmug service with username, password and API key."""
+    login = self._make_handler("login_withPassword")
+    session = login(SessionID=None,
+      EmailAddress=username, Password=password, APIKey=apiKey)
+    self.sessionId = session['Login']['Session']['id']
+    return self
 
   def images_upload(self, **kwargs):
     """Upload the corresponding image.
@@ -142,7 +137,7 @@ class SmugMug(object):
     """
     def get(m, key, required=True):
       if required and key not in m:
-        raise SmugMugException(0, "missing param '%s'" % (key))
+        raise SmugMugException("missing param '%s'" % (key))
       return m.pop(key, None)
 
     Data = get(kwargs, "Data")
@@ -151,7 +146,7 @@ class SmugMug(object):
     AlbumID = get(kwargs, "AlbumID", False)
 
     if (ImageID is not None) and (AlbumID is not None):
-      raise SmugMugException(0, "must set only one of AlbumID or ImageID")
+      raise SmugMugException("must set only one of AlbumID or ImageID")
 
     filename = os.path.split(FileName)[-1]
     fingerprint = md5.new(Data).hexdigest()
@@ -165,10 +160,10 @@ class SmugMug(object):
       "X-Smug-ResponseType: JSON",
       "X-Smug-ImageID: " + str(ImageID) if ImageID else "X-Smug-AlbumID: " + str(AlbumID),
       "X-Smug-FileName: " + filename,
-      "X-Smug-SessionID: " + self._sessionId,
+      "X-Smug-SessionID: " + self.sessionId,
     ]
 
-    c = _new_connection(url, {"SessionID":self._sessionId,
+    c = self._new_connection(url, {"SessionID":self.sessionId,
       "FileName":FileName, "ImageID":ImageID, "AlbumID":AlbumID})
     c.setopt(c.UPLOAD, True)
     c.setopt(c.HTTPHEADER, headers)
@@ -198,7 +193,7 @@ class BatchSmugMug(SmugMug):
   def __call__(self, n=35):
     """Execute all events in batch using at most n simulatenous connections."""
     if not self._batch:
-      raise SmugMugException(0, "no pending events")
+      raise SmugMugException("no pending events")
 
     def f(batch):
       m = pycurl.CurlMulti()
