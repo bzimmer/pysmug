@@ -7,7 +7,6 @@ This module has been greatly influenced by the Flickr module.
 import os
 import md5
 import cjson
-import types
 import pycurl
 import urllib
 import logging
@@ -26,21 +25,16 @@ curlinfo = (
   ("download-speed", pycurl.SPEED_DOWNLOAD)
 )
 
-def take(n, seq):
-  return list(islice(seq, n))
-
 def login(conf=None):
   if not conf:
     home = os.environ.get("HOME", None)
     if not home:
       raise ValueError("unknown home directory")
-    conf = os.path.join(home, ".smuglibrc")
+    conf = os.path.join(home, ".pysmugrc")
     if not os.path.exists(conf):
       raise ValueError("'%s' not found" % (conf))
-  mod = types.ModuleType("smuglibrc")
-  fp = open(conf)
-  exec fp in mod.__dict__
-  return SmugMug().login_withPassword(mod.username, mod.password, mod.apikey)
+  config = eval(open(conf).read())
+  return SmugMug().login_withPassword(config["username"], config["password"], config["apikey"])
 
 class SmugMugException(Exception):
   def __init__(self, message, code=0):
@@ -202,7 +196,7 @@ class BatchSmugMug(SmugMug):
       total, working = len(batch), 0
 
       while total > 0:
-        for c in take((n-working), ibatch):
+        for c in islice(ibatch, (n-working)):
           m.add_handle(c)
           working += 1
         while True:
