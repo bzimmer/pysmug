@@ -13,13 +13,13 @@ import logging
 import cStringIO
 from itertools import islice
 
-__all__ = ('login', 'BatchSmugMug', 'SmugMug', 'SmugMugException', '__version__')
+__all__ = ('login', 'SmugMug', 'SmugMugException', '__version__')
 
 __version__ = '0.1'
 
-userAgent = "pysmug(%s)" % (__version__)
+_userAgent = "pysmug(%s)" % (__version__)
 
-curlinfo = (
+_curlinfo = (
   ("total-time", pycurl.TOTAL_TIME),
   ("upload-speed", pycurl.SPEED_UPLOAD),
   ("download-speed", pycurl.SPEED_DOWNLOAD)
@@ -41,7 +41,7 @@ class SmugMugException(Exception):
     super(SmugMugException, self).__init__(message)
     self.code = code
 
-class SmugMug(object):
+class SmugBase(object):
   def __init__(self, sessionId=None):
     self.sessionId = sessionId
 
@@ -78,7 +78,7 @@ class SmugMug(object):
     c.args = args
     c.setopt(c.URL, url)
     logging.debug(url)
-    c.setopt(c.USERAGENT, userAgent)
+    c.setopt(c.USERAGENT, _userAgent)
     c.response = cStringIO.StringIO()
     c.setopt(c.WRITEFUNCTION, c.response.write)
     return c
@@ -96,7 +96,7 @@ class SmugMug(object):
     resp = cjson.decode(json)
     if not resp["stat"] == "ok":
       raise SmugMugException(resp["message"], resp["code"])
-    resp["Statistics"] = dict(((key, c.getinfo(const)) for key, const in curlinfo))
+    resp["Statistics"] = dict(((key, c.getinfo(const)) for key, const in _curlinfo))
     return resp
 
   def _perform(self, c):
@@ -107,9 +107,17 @@ class SmugMug(object):
     finally:
       c.close()
 
+class SmugMug(SmugBase):
+
   def batch(self):
     """Return an instance of a batch-oriented smugmug client."""
-    return BatchSmugMug(self.sessionId)
+    return SmugBatch(self.sessionId)
+  
+  def login_anonymously(self, apiKey):
+    login = self._make_handler("login_anonymously")
+    session = login(SessionID=None, APIKey=apiKey)
+    self.sessionId = session['Login']['Session']['id']
+    return self
 
   def login_withPassword(self, username, password, apiKey):
     """Login into the smugmug service with username, password and API key."""
@@ -166,15 +174,15 @@ class SmugMug(object):
     
     return self._perform(c)
 
-class BatchSmugMug(SmugMug):
+class SmugBatch(SmugBase):
   """Batching interface to smugmug.  The standard smugmug client
   executes each request as they are executed.  The batching version
   postpones executing all the requests until all have been prepared.
   The requests are then performed in parallel which generally achieves
   far greater performance than serially executing the requests.
   """
-  def __init__(self, sessionId):
-    super(BatchSmugMug, self).__init__(sessionId)
+  def __init__(self, sessionId=None):
+    super(SmugBatch, self).__init__(sessionId)
     self._batch = list()
   
   def _perform(self, c):
