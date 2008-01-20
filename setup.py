@@ -3,7 +3,7 @@
 # Written by Brian Zimmer
 
 import pysmug
-from distutils.core import setup, Extension
+from distutils.core import setup
 
 setup(
   name = "pysmug",
