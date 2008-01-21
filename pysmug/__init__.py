@@ -17,5 +17,5 @@ def login(conf=None):
     if not os.path.exists(conf):
       raise ValueError("'%s' not found" % (conf))
   config = eval(open(conf).read())
-  return SmugMug().login_withPassword(config["username"], config["password"], config["apikey"])
+  return SmugMug().login_withPassword(**config)
 
