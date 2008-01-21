@@ -1,12 +1,16 @@
 
 import os
 import md5
-import cjson
 import pycurl
 import urllib
 import logging
 import cStringIO
 from itertools import islice
+
+try:
+  from cjson import decode as jsondecode
+except ImportError:
+  from simplejson import loads as jsondecode
 
 from pysmug import __version__
 from pysmug.methods import methods as _methods
@@ -41,10 +45,8 @@ class SmugBase(object):
     if method not in _methods:
       raise SmugMugException("no such smugmug method '%s'" % (method))
 
-    url = "http://api.smugmug.com/services/api/json/1.2.1/?%s"
-    
     def smugmug(*args, **kwargs):
-      """Dynamically created handler for a SmugMug API call."""
+      """dynamically create the smugmug method"""
       if args:
         raise SmugMugException("smugmug methods take no arguments, only named parameters")
       defaults = {"method": method, "SessionID":self.sessionId}
@@ -56,6 +58,7 @@ class SmugBase(object):
           del kwargs[key]
       if "SessionID" in kwargs and kwargs["SessionID"] is None:
         raise SmugMugException("not authenticated -- no valid session id")
+      url = "http://api.smugmug.com/services/api/json/1.2.1/?%s"
       query = url % urllib.urlencode(kwargs)
       c = self._new_connection(query, kwargs)
       return self._perform(c)
@@ -82,27 +85,22 @@ class SmugBase(object):
     json = c.response.getvalue().replace("\/", "/")
     ##############
     logging.debug(json)
-    resp = cjson.decode(json)
+    resp = jsondecode(json)
     if not resp["stat"] == "ok":
       raise SmugMugException(resp["message"], resp["code"])
     resp["Statistics"] = dict(((key, c.getinfo(const)) for key, const in _curlinfo))
     return resp
 
   def _perform(self, c):
-    """Perform the low-level communication with smugmug."""
-    try:
-      c.perform()
-      return self._handle_response(c)
-    finally:
-      c.close()
+    pass
 
   def images_upload(self, AlbumID=None, ImageID=None, Data=None, FileName=None, **kwargs):
     """Upload the corresponding image.
 
-    @keyword Data the binary data of the image
-    @keyword FileName the name of the file (optional)
-    @keyword ImageID the id of the image to replace
-    @keyword AlbumID the name of the album in which to add the photo
+    @param Data: the binary data of the image
+    @param FileName: the name of the file (optional)
+    @param ImageID: the id of the image to replace
+    @param AlbumID: the name of the album in which to add the photo
 
     Note: one of ImageID or AlbumID must be present, but not both
     """
@@ -123,9 +121,13 @@ class SmugBase(object):
       "X-Smug-FileName: " + filename,
       "X-Smug-SessionID: " + self.sessionId,
     ]
+    for (k, v) in kwargs:
+      # Caption, Keywords, Latitude, Longitude, Altitude
+      headers.append("X-Smug-%s: %s" % (k, v))
 
-    c = self._new_connection(url, {"SessionID":self.sessionId,
+    kwargs.update({"SessionID":self.sessionId,
       "FileName":FileName, "ImageID":ImageID, "AlbumID":AlbumID})
+    c = self._new_connection(url, kwargs)
     c.setopt(c.UPLOAD, True)
     c.setopt(c.HTTPHEADER, headers)
     c.setopt(c.INFILESIZE, len(Data))
@@ -134,6 +136,14 @@ class SmugBase(object):
     return self._perform(c)
 
 class SmugMug(SmugBase):
+  
+  def _perform(self, c):
+    """Perform the low-level communication with smugmug."""
+    try:
+      c.perform()
+      return self._handle_response(c)
+    finally:
+      c.close()
 
   def batch(self):
     """Return an instance of a batch-oriented smugmug client."""
@@ -172,7 +182,10 @@ class SmugBatch(SmugBase):
     return len(self._batch)
   
   def __call__(self, n=35):
-    """Execute all events in batch using at most n simulatenous connections."""
+    """Execute all pending requests.
+
+    @param n: maximum number of simultaneous connections
+    """
     if not self._batch:
       raise SmugMugException("no pending events")
 
@@ -214,5 +227,4 @@ class SmugBatch(SmugBase):
       return f(self._batch[:])
     finally:
       self._batch = list()
-
 
