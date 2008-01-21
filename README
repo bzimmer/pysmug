@@ -6,14 +6,15 @@ the pycurl library for connectivity.
 
 Author:  Brian Zimmer <bzimmer@ziclix.com>
 Version: 0.1
-Date:    01/20/2008
+Date:    mm/dd/2008
 
 Requirements
 ------------
 
 - Python 2.5+
 - PycURL
-- A SmugMug API key
+- one of python-cjson or simplejson
+- A SmugMug API key (optional)
 
 Installation and test
 ---------------------
@@ -27,14 +28,14 @@ $ python test/test_albums_get.py
 Change Log
 ---------------
 
-v0.1 - 01/20/2008
+v0.1 - mm/dd/2008
 
   - Initial release
 
 License
 -------
 
-Released under the GNU General Public License v2.
+Released under the MIT License.
 
 Feedback
 --------
