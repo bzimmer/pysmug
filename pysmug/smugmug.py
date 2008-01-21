@@ -58,7 +58,7 @@ class SmugBase(object):
           del kwargs[key]
       if "SessionID" in kwargs and kwargs["SessionID"] is None:
         raise SmugMugException("not authenticated -- no valid session id")
-      url = "http://api.smugmug.com/services/api/json/1.2.1/?%s"
+      url = "https://api.smugmug.com/services/api/json/1.2.1/?%s"
       query = url % urllib.urlencode(kwargs)
       c = self._new_connection(query, kwargs)
       return self._perform(c)
@@ -73,6 +73,8 @@ class SmugBase(object):
     c.setopt(c.USERAGENT, _userAgent)
     c.response = cStringIO.StringIO()
     c.setopt(c.WRITEFUNCTION, c.response.write)
+    # for SSL
+    c.setopt(c.SSL_VERIFYPEER, False)
     return c
 
   def _handle_response(self, c):
@@ -110,7 +112,7 @@ class SmugBase(object):
     filename = os.path.split(FileName)[-1]
     fingerprint = md5.new(Data).hexdigest()
     image = cStringIO.StringIO(Data)
-    url = "http://upload.smugmug.com/" + filename
+    url = "https://upload.smugmug.com/" + filename
 
     headers = [
       "Host: upload.smugmug.com",
