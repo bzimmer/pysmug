@@ -1,0 +1,43 @@
+Summary
+-----------
+
+A high-performance python client for the SmugMug API utilizing
+the pycurl library for connectivity.
+
+Author:  Brian Zimmer <bzimmer@ziclix.com>
+Version: 0.1
+Date:    01/20/2008
+
+Requirements
+------------
+
+- Python 2.5+
+- PycURL
+- A SmugMug API key
+
+Installation and test
+---------------------
+
+$ tar zxvf pysmug-0.1.tar.gz
+$ cd pysmug-0.1
+$ python setup.py install
+
+$ python test/test_albums_get.py 
+
+Change Log
+---------------
+
+v0.1 - 01/20/2008
+
+  - Initial release
+
+License
+-------
+
+Released under the GNU General Public License v2.
+
+Feedback
+--------
+
+Send patches, issues and comments to bzimmer@ziclix.com.
+
