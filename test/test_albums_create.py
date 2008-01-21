@@ -1,6 +1,6 @@
 
 import pysmug
-import logging, urllib
+import logging, urllib, datetime
 logging.basicConfig(level=logging.DEBUG)
 
 m = pysmug.login()
@@ -18,7 +18,7 @@ if categoryId is None:
 if not "ReTesting" in categories:
   m.categories_rename(CategoryID=categoryId, Name="ReTesting")
 
-album = m.albums_create(Title="NewAlbum", CategoryID=categoryId)
+album = m.albums_create(Title="NewAlbum-%s" % (datetime.datetime.now()), CategoryID=categoryId)
 albumId = album["Album"]["id"]
 try: images = m.images_get(AlbumID=albumId)
 except pysmug.SmugMugException, e: print e.message
