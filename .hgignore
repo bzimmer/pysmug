@@ -2,3 +2,5 @@
 syntax: glob
 *.pyc
 MANIFEST
+build
+dist
