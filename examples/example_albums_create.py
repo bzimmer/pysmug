@@ -1,10 +1,12 @@
 
-import smtest
+import urllib
+import datetime
+import smexample
 from pysmug import SmugMugException
 
-class Test(smtest.Test):
+class Example(smexample.Example):
 
-  def test(self, *args, **kwargs):
+  def example(self, *args, **kwargs):
     tree = self.m.users_getTree()
 
     categories = {}
@@ -22,8 +24,10 @@ class Test(smtest.Test):
     title = "NewAlbum-%s" % (datetime.datetime.now())
     album = self.m.albums_create(Title=title, CategoryID=categoryId)
     albumId = album["Album"]["id"]
-    try: images = self.m.images_get(AlbumID=albumId)
-    except SmugMugException, e: print e.message
+    try:
+      images = self.m.images_get(AlbumID=albumId)
+    except SmugMugException, e:
+      assert e.code == 15 # empty set
     assert self.m.albums_getInfo(AlbumID=albumId)["Album"]["Category"]["id"] == categoryId
     google = urllib.urlopen("http://www.google.com/intl/en_ALL/images/logo.gif").read()
     image = self.m.images_upload(Data=google, FileName="google.gif", AlbumID=albumId)
@@ -35,5 +39,5 @@ class Test(smtest.Test):
     self.m.categories_delete(CategoryID=categoryId)
 
 if __name__ == '__main__':
-  smtest.main(Test)
+  smexample.main(Example)
 

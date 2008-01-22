@@ -1,7 +1,7 @@
 
 from pysmug import SmugMug, SmugMugException
 
-class Test:
+class Example:
   def __init__(self, APIKey, EmailAddress=None, Password=None):
     self.m = SmugMug()
     if EmailAddress and Password:
@@ -10,7 +10,7 @@ class Test:
     else:
       self.m.login_anonymously(APIKey=APIKey)
 
-  def test(self, *args, **kwargs):
+  def example(self, *args, **kwargs):
     pass
 
 def main(cls):
@@ -32,10 +32,10 @@ def main(cls):
     args = [630992] # Street Photos from Moon River Photography
 
   password = getpass() if opts.email else None
-  test = cls(opts.apikey, opts.email, password)
+  example = cls(opts.apikey, opts.email, password)
   for arg in args:
     try:
-      test.test(arg)
+      example.example(arg)
     except SmugMugException, e:
       # too bad error codes are not consistent
       if e.message in ("invalid user", "invalid session"):

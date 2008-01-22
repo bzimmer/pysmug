@@ -1,8 +1,10 @@
-import smtest
-import datetime
 
-class Test(smtest.Test):
-  def test(self, albumId):
+import datetime
+import smexample
+
+class Example(smexample.Example):
+  
+  def example(self, albumId):
     b = self.m.batch()
     t = datetime.datetime.now()
     for a in b.images_download(AlbumID=albumId, Format="Tiny", Path="/tmp"):
@@ -10,5 +12,5 @@ class Test(smtest.Test):
     print datetime.datetime.now() - t
 
 if __name__ == "__main__":
-  smtest.main()
+  smexample.main(Example)
 

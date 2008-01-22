@@ -1,9 +1,9 @@
 
-import smtest
+import smexample
 
-class Test(smtest.Test):
+class Example(smexample.Example):
   
-  def test(self, albumId):
+  def example(self, albumId):
     m, b = self.m, self.m.batch()
     album = m.albums_getInfo(AlbumID=albumId)
     print
@@ -34,5 +34,5 @@ class Test(smtest.Test):
     print seconds("Average response time", total_time/count)
 
 if __name__ == "__main__":
-  smtest.main(Test)
+  smexample.main(Example)
 
