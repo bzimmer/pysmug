@@ -12,7 +12,7 @@ Requirements
 ------------
 
 - Python 2.5+
-- PycURL
+- PycURL + libcurl
 - one of python-cjson or simplejson
 - A SmugMug API key (optional)
 
