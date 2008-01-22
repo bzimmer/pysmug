@@ -1,34 +1,39 @@
 
-import pysmug
-import logging, urllib, datetime
-logging.basicConfig(level=logging.DEBUG)
+import smtest
+from pysmug import SmugMugException
 
-m = pysmug.login()
-tree = m.users_getTree()
+class Test(smtest.Test):
 
-categories = {}
-for q in m.categories_get()["Categories"]:
-  categories[q["Name"]] = q["id"]
+  def test(self, *args, **kwargs):
+    tree = self.m.users_getTree()
 
-categoryId = categories.get("Testing", None)
-if categoryId is None:
-  category = m.categories_create(Name="Testing")
-  categoryId = category["Category"]["id"]
+    categories = {}
+    for q in self.m.categories_get()["Categories"]:
+      categories[q["Name"]] = q["id"]
 
-if not "ReTesting" in categories:
-  m.categories_rename(CategoryID=categoryId, Name="ReTesting")
+    categoryId = categories.get("Testing", None)
+    if categoryId is None:
+      category = self.m.categories_create(Name="Testing")
+      categoryId = category["Category"]["id"]
 
-album = m.albums_create(Title="NewAlbum-%s" % (datetime.datetime.now()), CategoryID=categoryId)
-albumId = album["Album"]["id"]
-try: images = m.images_get(AlbumID=albumId)
-except pysmug.SmugMugException, e: print e.message
-assert m.albums_getInfo(AlbumID=albumId)["Album"]["Category"]["id"] == categoryId
-google = urllib.urlopen("http://www.google.com/intl/en_ALL/images/logo.gif").read()
-image = m.images_upload(Data=google, FileName="google.gif", AlbumID=albumId)
-x = raw_input("check the album...")
-images = m.images_get(AlbumID=albumId, Heavy=1)
-for a in images["Images"]:
-  print a
-m.albums_delete(AlbumID=albumId)
-m.categories_delete(CategoryID=categoryId)
+    if not "ReTesting" in categories:
+      self.m.categories_rename(CategoryID=categoryId, Name="ReTesting")
+
+    title = "NewAlbum-%s" % (datetime.datetime.now())
+    album = self.m.albums_create(Title=title, CategoryID=categoryId)
+    albumId = album["Album"]["id"]
+    try: images = self.m.images_get(AlbumID=albumId)
+    except SmugMugException, e: print e.message
+    assert self.m.albums_getInfo(AlbumID=albumId)["Album"]["Category"]["id"] == categoryId
+    google = urllib.urlopen("http://www.google.com/intl/en_ALL/images/logo.gif").read()
+    image = self.m.images_upload(Data=google, FileName="google.gif", AlbumID=albumId)
+    raw_input("check the album...")
+    images = self.m.images_get(AlbumID=albumId, Heavy=1)
+    for a in images["Images"]:
+      print a
+    self.m.albums_delete(AlbumID=albumId)
+    self.m.categories_delete(CategoryID=categoryId)
+
+if __name__ == '__main__':
+  smtest.main(Test)
 

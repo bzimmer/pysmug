@@ -1,22 +1,8 @@
 
-#import logging
-#logging.basicConfig(level=logging.DEBUG)
+import smtest
 
-import optparse
-from pysmug import SmugMug
-from getpass import getpass
-
-_APIKey = "1XhqbbxNfSygsmVReGQ8nek8D2Dz8F61"
-
-class Test:
-  def __init__(self, APIKey, EmailAddress=None, Password=None):
-    self.m = SmugMug()
-    if EmailAddress and Password:
-      self.m.login_withPassword(APIKey=APIKey,
-        EmailAddress=EmailAddress, Password=Password)
-    else:
-      self.m.login_anonymously(APIKey=APIKey)
-
+class Test(smtest.Test):
+  
   def test(self, albumId):
     m, b = self.m, self.m.batch()
     album = m.albums_getInfo(AlbumID=albumId)
@@ -48,17 +34,5 @@ class Test:
     print seconds("Average response time", total_time/count)
 
 if __name__ == "__main__":
-  p = optparse.OptionParser()
-  p.add_option("-a", "--apikey", default=_APIKey, action="store")
-  p.add_option("-e", "--email", action="store")
-  opts, args = p.parse_args()
-
-  if not args:
-    args = [630992] # Street Photos from Moon River Photography
-
-  password = getpass() if opts.email else None
-  test = Test(opts.apikey, opts.email, password)
-  for arg in args:
-    test.test(arg)
-  raise SystemExit()
+  smtest.main(Test)
 
