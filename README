@@ -23,7 +23,7 @@ $ tar zxvf pysmug-0.1.tar.gz
 $ cd pysmug-0.1
 $ python setup.py install
 
-$ python test/test_albums_get.py 
+$ python test/test_images_getInfo.py
 
 Change Log
 ---------------
