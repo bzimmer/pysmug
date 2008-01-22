@@ -43,17 +43,23 @@ _curlinfo = (
 )
 
 class SmugMugException(Exception):
+  """Representation of a SmugMug exception."""
+
   def __init__(self, message, code=0):
     super(SmugMugException, self).__init__(message)
     self.code = code
 
 class SmugBase(object):
+  """Abstract functionality for SmugMug API clients."""
+
   def __init__(self, sessionId=None, protocol="https"):
     self.protocol = protocol
+    """Communication protocol -- either C{http} or C{https}"""
     self.sessionId = sessionId
+    """Session id from smugmug."""
 
   def __getattr__(self, method):
-    """Construct a dynamic handler for the smugmug api."""
+    """Construct a dynamic handler for the SmugMug API."""
     # Refuse to act as a proxy for unimplemented special methods
     if method.startswith('__'):
       raise AttributeError("no such attribute '%s'" % (method))
@@ -66,7 +72,7 @@ class SmugBase(object):
       raise SmugMugException("no such smugmug method '%s'" % (method))
 
     def smugmug(*args, **kwargs):
-      """dynamically create the smugmug method"""
+      """Dynamically created SmugMug function call."""
       if args:
         raise SmugMugException("smugmug methods take no arguments, only named parameters")
       defaults = {"method": method, "SessionID":self.sessionId}
@@ -86,6 +92,14 @@ class SmugBase(object):
     return smugmug
 
   def _new_connection(self, url, args):
+    """Prepare a new connection.
+
+    Create a new connection setting up the query string,
+    user agent header, response buffer and ssl parameters.
+
+    @param url: complete query string with parameters already encoded
+    @param args: arguments passed to method to be used for later callbacks
+    """
     c = pycurl.Curl()
     c.args = args
     c.setopt(c.URL, url)
@@ -98,8 +112,15 @@ class SmugBase(object):
     return c
 
   def _handle_response(self, c):
-    """Read the response, convert it to a pythonic instance and check
-    the error code to ensure the operation was successful.
+    """Handle the response from SmugMug.
+
+    This method decodes the JSON response and checks for any error
+    condition.  It additionally adds a C{Statistics} item to the response
+    which contains upload & download times.
+
+    @param c: a completed connection
+    @return: a dictionary of results corresponding to the SmugMug response
+    @raise SmugMugException: if an error exists in the response
     """
     #### HACK ####
     # for some reason the response from smugmug
@@ -119,12 +140,12 @@ class SmugBase(object):
   def images_upload(self, AlbumID=None, ImageID=None, Data=None, FileName=None, **kwargs):
     """Upload the corresponding image.
 
+    ** Note: one of ImageID or AlbumID must be present, but not both **
+
     @param Data: the binary data of the image
-    @param FileName: the name of the file (optional)
     @param ImageID: the id of the image to replace
     @param AlbumID: the name of the album in which to add the photo
-
-    Note: one of ImageID or AlbumID must be present, but not both
+    @param FileName: the name of the file *optional*
     """
     if (ImageID is not None) and (AlbumID is not None):
       raise SmugMugException("must set only one of AlbumID or ImageID")
@@ -158,9 +179,10 @@ class SmugBase(object):
     return self._perform(c)
 
 class SmugMug(SmugBase):
+  """Serial version of a SmugMug client."""
   
   def _perform(self, c):
-    """Perform the low-level communication with smugmug."""
+    """Perform the low-level communication with SmugMug."""
     try:
       c.perform()
       return self._handle_response(c)
@@ -168,17 +190,28 @@ class SmugMug(SmugBase):
       c.close()
 
   def batch(self):
-    """Return an instance of a batch-oriented smugmug client."""
+    """Return an instance of a batch-oriented SmugMug client."""
     return SmugBatch(self.sessionId, self.protocol)
   
   def login_anonymously(self, APIKey=None):
+    """Login into SmugMug anonymously.
+    
+    @param APIKey: a SmugMug api key
+    @return: the SmugMug instance with a session established
+    """
     login = self._make_handler("login_anonymously")
     session = login(SessionID=None, APIKey=APIKey)
     self.sessionId = session['Login']['Session']['id']
     return self
 
   def login_withPassword(self, EmailAddress=None, Password=None, APIKey=None):
-    """Login into the smugmug service with username, password and API key."""
+    """Login into SmugMug with username, password and API key.
+
+    @param EmailAddress: the account holder's email address
+    @param Password: the account holder's password
+    @param APIKey: a SmugMug api key
+    @return: the SmugMug instance with a session established
+    """
     login = self._make_handler("login_withPassword")
     session = login(SessionID=None,
       EmailAddress=EmailAddress, Password=Password, APIKey=APIKey)
@@ -186,18 +219,17 @@ class SmugMug(SmugBase):
     return self
 
 class SmugBatch(SmugBase):
-  """Batching interface to smugmug.  The standard smugmug client
-  executes each request as they are executed.  The batching version
-  postpones executing all the requests until all have been prepared.
-  The requests are then performed in parallel which generally achieves
-  far greater performance than serially executing the requests.
-  """
+  """Batching version of a SmugMug client."""
+
   def __init__(self, *args, **kwargs):
     super(SmugBatch, self).__init__(*args, **kwargs)
     self._batch = list()
+    """A list of requests pending executions."""
     self.concurrent = kwargs.get("concurrent", 10)
+    """The number of concurrent requests to execute."""
   
   def _perform(self, c):
+    """Store the request for later processing."""
     self._batch.append(c)
     return None
 
@@ -207,7 +239,9 @@ class SmugBatch(SmugBase):
   def __call__(self, n=None):
     """Execute all pending requests.
 
+    @type n: int
     @param n: maximum number of simultaneous connections
+    @return: a generator of results from the batch execution - order independent
     """
     if not self._batch:
       raise SmugMugException("no pending events")
@@ -256,7 +290,15 @@ class SmugBatch(SmugBase):
       except: pass
 
   def images_download(self, AlbumID=None, Path=None, Format="Original"):
-    """Download the entire contents of an album to the specified path."""
+    """Download the entire contents of an album to the specified path.
+    
+    * This method is not a standard smugmug method. *
+
+    @param AlbumID: the album to download
+    @param Path: the path to store the images
+    @param Format: the size of the image (check smugmug for possible sizes)
+    @return: a generator of responses containing the filenames saved locally
+    """
     path = os.path.abspath(os.getcwd() if not Path else Path)
     
     self.images_get(AlbumID=AlbumID, Heavy=1)

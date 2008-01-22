@@ -2,8 +2,23 @@
 
 # Written by Brian Zimmer
 
+import os
 import pysmug
 from distutils.core import setup
+from distutils.cmd import Command
+
+class epydoc(Command):
+  description = "Builds the documentation."
+  user_options = []
+
+  def initialize_options(self):
+    pass
+  
+  def finalize_options(self):
+    pass
+  
+  def run(self):
+    os.system("epydoc -v -o doc pysmug/*.py")
 
 setup(
   name = "pysmug",
@@ -21,5 +36,6 @@ setup(
     'Programming Language :: Python',
     'Topic :: Software Development :: Libraries :: Python Modules',
   ],
+  cmdclass = {"epydoc":epydoc},
 )
 

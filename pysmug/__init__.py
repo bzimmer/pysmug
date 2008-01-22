@@ -18,15 +18,32 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""SmugMug API"""
+r"""A high-performance client to the SmugMug API.
 
-__all__ = ("__version__", "SmugMug", "SmugMugException", "login")
+ This client supports the entire set of methods available through smugmug
+ both serially and in batch.
+
+ References:
+   - U{pysmug <http://code.google.com/p/pysmug>}
+   - U{SmugMug API <http://smugmug.jot.com/WikiHome/API/Versions/1.2.1>}
+"""
+
+__all__ = ("__version__", "SmugMug", "SmugBatch", "SmugMugException", "login")
 
 __version__ = "0.1"
 
-from pysmug.smugmug import SmugMug, SmugMugException
+from pysmug.smugmug import SmugMug, SmugBatch, SmugMugException
 
 def login(conf=None):
+  """Login to smugmug using the contents of the configuration file.
+
+  If no configuration file specified then a file named C{.pysmugrc} in
+  the user's home directory is used if it exists.
+  
+  @param conf: path to a configuration file
+  @raise ValueError: if no configuration file is found
+  """
+  
   import os
   if not conf:
     home = os.environ.get("HOME", None)
