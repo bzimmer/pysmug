@@ -29,7 +29,8 @@ class SmugMugException(Exception):
     self.code = code
 
 class SmugBase(object):
-  def __init__(self, sessionId=None):
+  def __init__(self, sessionId=None, protocol="https"):
+    self.protocol = protocol
     self.sessionId = sessionId
 
   def __getattr__(self, method):
@@ -58,9 +59,9 @@ class SmugBase(object):
           del kwargs[key]
       if "SessionID" in kwargs and kwargs["SessionID"] is None:
         raise SmugMugException("not authenticated -- no valid session id")
-      url = "https://api.smugmug.com/services/api/json/1.2.1/?%s"
-      query = url % urllib.urlencode(kwargs)
-      c = self._new_connection(query, kwargs)
+      query = urllib.urlencode(kwargs)
+      url = "%s://api.smugmug.com/services/api/json/1.2.1/?%s" % (self.protocol, query)
+      c = self._new_connection(url, kwargs)
       return self._perform(c)
     
     return smugmug
@@ -95,7 +96,7 @@ class SmugBase(object):
 
   def _perform(self, c):
     pass
-
+  
   def images_upload(self, AlbumID=None, ImageID=None, Data=None, FileName=None, **kwargs):
     """Upload the corresponding image.
 
@@ -112,7 +113,7 @@ class SmugBase(object):
     filename = os.path.split(FileName)[-1]
     fingerprint = md5.new(Data).hexdigest()
     image = cStringIO.StringIO(Data)
-    url = "https://upload.smugmug.com/" + filename
+    url = "%s://upload.smugmug.com/%s" % (self.protocol, filename)
 
     headers = [
       "Host: upload.smugmug.com",
@@ -149,7 +150,7 @@ class SmugMug(SmugBase):
 
   def batch(self):
     """Return an instance of a batch-oriented smugmug client."""
-    return SmugBatch(self.sessionId)
+    return SmugBatch(self.sessionId, self.protocol)
   
   def login_anonymously(self, APIKey=None):
     login = self._make_handler("login_anonymously")
@@ -172,9 +173,10 @@ class SmugBatch(SmugBase):
   The requests are then performed in parallel which generally achieves
   far greater performance than serially executing the requests.
   """
-  def __init__(self, sessionId=None):
-    super(SmugBatch, self).__init__(sessionId)
+  def __init__(self, *args, **kwargs):
+    super(SmugBatch, self).__init__(*args, **kwargs)
     self._batch = list()
+    self.concurrent = kwargs.get("concurrent", 10)
   
   def _perform(self, c):
     self._batch.append(c)
@@ -183,7 +185,7 @@ class SmugBatch(SmugBase):
   def __len__(self):
     return len(self._batch)
   
-  def __call__(self, n=35):
+  def __call__(self, n=None):
     """Execute all pending requests.
 
     @param n: maximum number of simultaneous connections
@@ -191,42 +193,83 @@ class SmugBatch(SmugBase):
     if not self._batch:
       raise SmugMugException("no pending events")
 
-    def f(batch):
-      m = pycurl.CurlMulti()
-
-      ibatch = iter(batch)
-      total, working = len(batch), 0
-
-      while total > 0:
-        for c in islice(ibatch, (n-working)):
-          m.add_handle(c)
-          working += 1
-        while True:
-          ret, nhandles = m.perform()
-          if ret != pycurl.E_CALL_MULTI_PERFORM:
-            break
-        while True:
-          q, ok, err = m.info_read()
-          for c in ok:
-            m.remove_handle(c)
-            yield (c.args, self._handle_response(c))
-          for c, errno, errmsg in err:
-            m.remove_handle(c)
-            yield (c.args, self._handle_response(c))
-          read = len(ok) + len(err)
-          total -= read
-          working -= read
-          if q == 0:
-            break
-        m.select(1.0)
-
-      while batch:
-        try:
-          batch.pop().close()
-        except: pass
-
     try:
-      return f(self._batch[:])
+      return self._multi(self._batch[:], self._handle_response, n=n)
     finally:
       self._batch = list()
+
+  def _multi(self, batch, func, n=None):
+    m = pycurl.CurlMulti()
+
+    ibatch = iter(batch)
+    total, working = len(batch), 0
+
+    n = (n if n is not None else self.concurrent)
+    if n <= 0:
+      raise SmugMugException("concurrent requests must be greater than zero")
+
+    while total > 0:
+      for c in islice(ibatch, (n-working)):
+        m.add_handle(c)
+        working += 1
+      while True:
+        ret, nhandles = m.perform()
+        if ret != pycurl.E_CALL_MULTI_PERFORM:
+          break
+      while True:
+        q, ok, err = m.info_read()
+        for c in ok:
+          m.remove_handle(c)
+          yield (c.args, func(c))
+        for c, errno, errmsg in err:
+          m.remove_handle(c)
+          yield (c.args, func(c))
+        read = len(ok) + len(err)
+        total -= read
+        working -= read
+        if q == 0:
+          break
+      m.select(1.0)
+
+    while batch:
+      try:
+        batch.pop().close()
+      except: pass
+
+  def images_download(self, AlbumID=None, Path=None, Format="Original"):
+    """Download the entire contents of an album to the specified path."""
+    path = os.path.abspath(os.getcwd() if not Path else Path)
+    
+    self.images_get(AlbumID=AlbumID, Heavy=1)
+    album = list(self())[0][1]
+
+    path = os.path.join(path, str(AlbumID))
+    if not os.path.exists(path):
+      os.mkdir(path)
+
+    fp = open(os.path.join(path, "album.txt"), "w")
+    fp.write(str(album))
+    fp.close()
+
+    connections = list()
+    for image in album["Images"]:
+      url = image.get(Format+"URL", None)
+      if url is None:
+        continue
+      fn = image.get("FileName", str(image["id"]))
+      filename = os.path.join(path, fn)
+      connections.append(self._new_connection(url, {"FileName":filename}))
+
+    def f(c):
+      fn = c.args["FileName"]
+      fp = open(fn, "wb")
+      fp.write(c.response.getvalue())
+      fp.close()
+      return fn
+
+    # force concurrent downloads regardless of the smug instance
+    args = {"AlbumID":AlbumID, "Path":Path, "Format":Format}
+    for a in self._multi(connections, f):
+      r = {"method":"pysmug.images.download", "stat":"ok", "Image":{"FileName":a[1]}}
+      yield (args, r)
 

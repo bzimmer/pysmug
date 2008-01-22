@@ -1,4 +1,7 @@
 
+#import logging
+#logging.basicConfig(level=logging.DEBUG)
+
 import optparse
 from pysmug import SmugMug
 from getpass import getpass
