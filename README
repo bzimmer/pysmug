@@ -4,9 +4,11 @@ Summary
 A high-performance python client for the SmugMug API utilizing
 the pycurl library for connectivity.
 
+More information available at http://code.google.com/p/pysmug.
+
 Author:  Brian Zimmer <bzimmer@ziclix.com>
 Version: 0.1
-Date:    mm/dd/2008
+Date:    01/22/2008
 
 Requirements
 ------------
@@ -16,19 +18,19 @@ Requirements
 - one of python-cjson or simplejson
 - A SmugMug API key (optional)
 
-Installation and test
----------------------
+Installation and examples
+-------------------------
 
 $ tar zxvf pysmug-0.1.tar.gz
 $ cd pysmug-0.1
 $ python setup.py install
 
-$ python test/test_images_getInfo.py
+$ python examples/example_images_getInfo.py
 
 Change Log
 ---------------
 
-v0.1 - mm/dd/2008
+v0.1 - 01/22/2008
 
   - Initial release
 
