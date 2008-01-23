@@ -20,6 +20,7 @@
 
 import os
 import md5
+import pprint
 import pycurl
 import urllib
 import logging
@@ -309,7 +310,7 @@ class SmugBatch(SmugBase):
       os.mkdir(path)
 
     fp = open(os.path.join(path, "album.txt"), "w")
-    fp.write(str(album))
+    pprint.pprint(album, fp)
     fp.close()
 
     connections = list()
@@ -317,7 +318,9 @@ class SmugBatch(SmugBase):
       url = image.get(Format+"URL", None)
       if url is None:
         continue
-      fn = image.get("FileName", str(image["id"]))
+      fn = image.get("FileName", None)
+      if fn is None:
+        fn = os.path.split(url)[-1]
       filename = os.path.join(path, fn)
       connections.append(self._new_connection(url, {"FileName":filename}))
 
