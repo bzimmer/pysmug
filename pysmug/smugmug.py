@@ -40,7 +40,7 @@ _userAgent = "pysmug(%s)" % (__version__)
 _curlinfo = (
   ("total-time", pycurl.TOTAL_TIME),
   ("upload-speed", pycurl.SPEED_UPLOAD),
-  ("download-speed", pycurl.SPEED_DOWNLOAD)
+  ("download-speed", pycurl.SPEED_DOWNLOAD),
 )
 
 class SmugMugException(Exception):
@@ -132,7 +132,7 @@ class SmugBase(object):
     resp = jsondecode(json)
     if not resp["stat"] == "ok":
       raise SmugMugException(resp["message"], resp["code"])
-    resp["Statistics"] = dict(((key, c.getinfo(const)) for key, const in _curlinfo))
+    resp["Statistics"] = dict((key, c.getinfo(const)) for (key, const) in _curlinfo)
     return resp
 
   def _perform(self, c):
@@ -146,12 +146,17 @@ class SmugBase(object):
     @param Data: the binary data of the image
     @param ImageID: the id of the image to replace
     @param AlbumID: the name of the album in which to add the photo
-    @param FileName: the name of the file *optional*
+    @param FileName: the name of the file
     """
     if (ImageID is not None) and (AlbumID is not None):
       raise SmugMugException("must set only one of AlbumID or ImageID")
 
-    filename = os.path.split(FileName)[-1]
+    if not Data:
+      if not (FileName or os.path.exists(FileName)):
+        raise SmugMugException("one of FileName or Data must be non-None")
+      Data = open(FileName, "rb").read()
+
+    filename = os.path.split(FileName)[-1] if FileName else ""
     fingerprint = md5.new(Data).hexdigest()
     image = cStringIO.StringIO(Data)
     url = "%s://upload.smugmug.com/%s" % (self.protocol, filename)
@@ -190,9 +195,9 @@ class SmugMug(SmugBase):
     finally:
       c.close()
 
-  def batch(self):
+  def batch(self, protocol=None):
     """Return an instance of a batch-oriented SmugMug client."""
-    return SmugBatch(self.sessionId, self.protocol)
+    return SmugBatch(self.sessionId, protocol or self.protocol)
   
   def login_anonymously(self, APIKey=None):
     """Login into SmugMug anonymously.
