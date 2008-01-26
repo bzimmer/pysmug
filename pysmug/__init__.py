@@ -30,7 +30,7 @@ r"""A high-performance client to the SmugMug API.
 
 __all__ = ("__version__", "SmugMug", "SmugBatch", "SmugMugException", "login")
 
-__version__ = "0.1"
+__version__ = "0.2"
 
 from pysmug.smugmug import SmugMug, SmugBatch, SmugMugException
 
