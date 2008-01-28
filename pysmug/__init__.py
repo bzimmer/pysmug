@@ -53,5 +53,10 @@ def login(conf=None):
     if not os.path.exists(conf):
       raise ValueError("'%s' not found" % (conf))
   config = eval(open(conf).read())
-  return SmugMug().login_withPassword(**config)
+  m = SmugMug()
+  if "PasswordHash" in config:
+    return m.login_withHash(**config)
+  elif "Password" in config:
+    return m.login_withPassword(**config)
+  return m.login_anonymously(**config)
 

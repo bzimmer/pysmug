@@ -199,16 +199,30 @@ class SmugMug(SmugBase):
     """Return an instance of a batch-oriented SmugMug client."""
     return SmugBatch(self.sessionId, protocol or self.protocol)
   
+  def _login(self, handler, **kwargs):
+    login = self._make_handler(handler)
+    session = login(SessionID=None, **kwargs)
+    self.sessionId = session['Login']['Session']['id']
+    return self
+
   def login_anonymously(self, APIKey=None):
     """Login into SmugMug anonymously.
     
     @param APIKey: a SmugMug api key
     @return: the SmugMug instance with a session established
     """
-    login = self._make_handler("login_anonymously")
-    session = login(SessionID=None, APIKey=APIKey)
-    self.sessionId = session['Login']['Session']['id']
-    return self
+    return self._login("login_anonymously", APIKey=APIKey)
+
+  def login_withHash(self, EmailAddress=None, PasswordHash=None, APIKey=None):
+    """Login into SmugMug with username, password and API key.
+
+    @param EmailAddress: the account holder's email address
+    @param PasswordHash: the account holder's password hash
+    @param APIKey: a SmugMug api key
+    @return: the SmugMug instance with a session established
+    """
+    return self._login("login_withHash",
+      EmailAddress=EmailAddress, PasswordHash=PasswordHash, APIKey=APIKey)
 
   def login_withPassword(self, EmailAddress=None, Password=None, APIKey=None):
     """Login into SmugMug with username, password and API key.
@@ -218,11 +232,8 @@ class SmugMug(SmugBase):
     @param APIKey: a SmugMug api key
     @return: the SmugMug instance with a session established
     """
-    login = self._make_handler("login_withPassword")
-    session = login(SessionID=None,
+    return self._login("login_withPassword",
       EmailAddress=EmailAddress, Password=Password, APIKey=APIKey)
-    self.sessionId = session['Login']['Session']['id']
-    return self
 
 class SmugBatch(SmugBase):
   """Batching version of a SmugMug client."""
