@@ -213,16 +213,16 @@ class SmugMug(SmugBase):
     """
     return self._login("login_anonymously", APIKey=APIKey)
 
-  def login_withHash(self, EmailAddress=None, PasswordHash=None, APIKey=None):
+  def login_withHash(self, UserID=None, PasswordHash=None, APIKey=None):
     """Login into SmugMug with username, password and API key.
 
-    @param EmailAddress: the account holder's email address
+    @param UserID: the account holder's user id
     @param PasswordHash: the account holder's password hash
     @param APIKey: a SmugMug api key
     @return: the SmugMug instance with a session established
     """
     return self._login("login_withHash",
-      EmailAddress=EmailAddress, PasswordHash=PasswordHash, APIKey=APIKey)
+      UserID=UserID, PasswordHash=PasswordHash, APIKey=APIKey)
 
   def login_withPassword(self, EmailAddress=None, Password=None, APIKey=None):
     """Login into SmugMug with username, password and API key.
