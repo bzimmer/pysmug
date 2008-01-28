@@ -112,7 +112,7 @@ class SmugBase(object):
     c.setopt(c.SSL_VERIFYPEER, False)
     return c
 
-  def _handle_response(self, c):
+  def _handle_response(self, c, check=True):
     """Handle the response from SmugMug.
 
     This method decodes the JSON response and checks for any error
@@ -120,8 +120,9 @@ class SmugBase(object):
     which contains upload & download times.
 
     @param c: a completed connection
+    @param check: if `not stat == ok` raise an exception
     @return: a dictionary of results corresponding to the SmugMug response
-    @raise SmugMugException: if an error exists in the response
+    @raise SmugMugException: if an error exists in the response and `check` is True
     """
     #### HACK ####
     # for some reason the response from smugmug
@@ -130,7 +131,7 @@ class SmugBase(object):
     ##############
     logging.debug(json)
     resp = jsondecode(json)
-    if not resp["stat"] == "ok":
+    if check and not resp["stat"] == "ok":
       raise SmugMugException(resp["message"], resp["code"])
     resp["Statistics"] = dict((key, c.getinfo(const)) for (key, const) in _curlinfo)
     return resp
@@ -264,6 +265,9 @@ class SmugBatch(SmugBase):
       return self._multi(self._batch[:], self._handle_response, n=n)
     finally:
       self._batch = list()
+
+  def _handle_response(self, c):
+    return super(SmugBatch, self)._handle_response(c, check=False)
 
   def _multi(self, batch, func, n=None):
 
