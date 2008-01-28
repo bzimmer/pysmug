@@ -260,9 +260,6 @@ class SmugBatch(SmugBase):
     @param n: maximum number of simultaneous connections
     @return: a generator of results from the batch execution - order independent
     """
-    if not self._batch:
-      raise SmugMugException("no pending events")
-
     try:
       return self._multi(self._batch[:], self._handle_response, n=n)
     finally:
