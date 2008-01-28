@@ -266,15 +266,18 @@ class SmugBatch(SmugBase):
       self._batch = list()
 
   def _multi(self, batch, func, n=None):
-    m = pycurl.CurlMulti()
 
-    ibatch = iter(batch)
-    total, working = len(batch), 0
+    if not batch:
+      raise StopIteration()
 
     n = (n if n is not None else self.concurrent)
     if n <= 0:
       raise SmugMugException("concurrent requests must be greater than zero")
 
+    ibatch = iter(batch)
+    total, working = len(batch), 0
+
+    m = pycurl.CurlMulti()
     while total > 0:
       for c in islice(ibatch, (n-working)):
         m.add_handle(c)
