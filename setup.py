@@ -6,6 +6,7 @@ import os
 import pysmug
 from distutils.core import setup
 from distutils.cmd import Command
+from distutils.errors import DistutilsExecError
 
 class epydoc(Command):
   description = "Builds the documentation."
@@ -18,7 +19,9 @@ class epydoc(Command):
     pass
   
   def run(self):
-    os.system("epydoc -v -o doc pysmug/*.py")
+    stat = os.system("epydoc -v -o doc pysmug/*.py")
+    if not stat == 0:
+      raise DistutilsExecError("failed to run epydoc")
 
 setup(
   name = "pysmug",
