@@ -19,7 +19,7 @@ class epydoc(Command):
     pass
   
   def run(self):
-    stat = os.system("epydoc -v -o doc pysmug/*.py")
+    stat = os.system("epydoc --config epydoc.cfg pysmug/*.py")
     if not stat == 0:
       raise DistutilsExecError("failed to run epydoc")
 
