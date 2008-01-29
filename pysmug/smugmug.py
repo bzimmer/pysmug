@@ -139,6 +139,10 @@ class SmugBase(object):
   def _perform(self, c):
     pass
   
+  def batch(self, protocol=None):
+    """Return an instance of a batch-oriented SmugMug client."""
+    return SmugBatch(self.sessionId, protocol or self.protocol)
+  
   def images_upload(self, AlbumID=None, ImageID=None, Data=None, FileName=None, **kwargs):
     """Upload the corresponding image.
 
@@ -196,10 +200,6 @@ class SmugMug(SmugBase):
     finally:
       c.close()
 
-  def batch(self, protocol=None):
-    """Return an instance of a batch-oriented SmugMug client."""
-    return SmugBatch(self.sessionId, protocol or self.protocol)
-  
   def _login(self, handler, **kwargs):
     login = self._make_handler(handler)
     session = login(SessionID=None, **kwargs)
@@ -235,6 +235,47 @@ class SmugMug(SmugBase):
     """
     return self._login("login_withPassword",
       EmailAddress=EmailAddress, Password=Password, APIKey=APIKey)
+
+  def categories_getTree(self):
+    """Return a tree of categories and sub-categories.
+
+    The format of the response tree::
+
+      {'Category1': {'id': 41, 'SubCategories': {}},
+       'Category2': {'id':  3,
+                     'SubCategories': {'One': 4493,
+                                       'Two': 4299}},
+      }
+
+    The primary purpose for this method is to provide an easy
+    mapping between name and id.
+    """
+    # @todo - how can this be integrated with SmugBatch?
+    methods = {
+      "smugmug.categories.get":"Categories",
+      "smugmug.subcategories.getAll":"SubCategories"
+    }
+    
+    b = self.batch()
+    b.categories_get()
+    b.subcategories_getAll()
+    
+    for params, results in b():
+      method = results["method"]
+      methods[method] = results[methods[method]]
+    
+    subtree = {}
+    for subcategory in methods["smugmug.subcategories.getAll"]:
+      category = subcategory["Category"]["id"]
+      subtree.setdefault(category, dict())
+      subtree[category][subcategory["Name"]] = subcategory["id"]
+    
+    tree = {}
+    for category in methods["smugmug.categories.get"]:
+      categoryId = category["id"]
+      tree[category["Name"]] = {"id":categoryId, "SubCategories":subtree.get(categoryId, {})}
+
+    return {"method":"pysmug.categories.getTree", "Categories":tree, "stat":"ok"}
 
 class SmugBatch(SmugBase):
   """Batching version of a SmugMug client."""
@@ -354,7 +395,6 @@ class SmugBatch(SmugBase):
       fp.close()
       return fn
 
-    # force concurrent downloads regardless of the smug instance
     args = {"AlbumID":AlbumID, "Path":Path, "Format":Format}
     for a in self._multi(connections, f):
       r = {"method":"pysmug.images.download", "stat":"ok", "Image":{"FileName":a[1]}}
