@@ -1,3 +1,4 @@
 include *.txt
+include ChangeLog
 include test/*.py
 include examples/*.py

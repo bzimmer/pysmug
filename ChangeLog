@@ -1,0 +1,18 @@
+Please refer to the pysmug mercurial repository for exhaustive
+change details.
+
+pysmug ChangeLog
+================
+
+Changes in v0.2:
+	* added categories_getTree()
+	* in batch mode, exceptions are returned in the response
+	  rather than thrown
+	* better documentation
+	* added login_withHash()
+	* no longer raise an exception if no events pending for
+	  a batch execution -- return an empty iteration
+	* images_upload() will attempt to open the FileName if
+	  Data is None
+	* login() will try all three login methods
+
