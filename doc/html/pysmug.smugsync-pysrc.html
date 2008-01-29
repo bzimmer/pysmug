@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>pysmug.smugsync</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pysmug-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="pysmug-module.html">Package&nbsp;pysmug</a> ::
+        Module&nbsp;smugsync
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="pysmug.smugsync-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="pysmug.smugsync-module.html">Module pysmug.smugsync</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno"> 1</tt>  <tt class="py-line"><tt class="py-comment"># Copyright (c) 2008 Brian Zimmer &lt;bzimmer@ziclix.com&gt;</tt> </tt>
+<a name="L2"></a><tt class="py-lineno"> 2</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment">#</tt> </tt>
+<a name="L3"></a><tt class="py-lineno"> 3</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># Permission is hereby granted, free of charge, to any person obtaining a copy of</tt> </tt>
+<a name="L4"></a><tt class="py-lineno"> 4</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># this software and associated documentation files (the "Software"), to deal in</tt> </tt>
+<a name="L5"></a><tt class="py-lineno"> 5</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># the Software without restriction, including without limitation the rights to</tt> </tt>
+<a name="L6"></a><tt class="py-lineno"> 6</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies</tt> </tt>
+<a name="L7"></a><tt class="py-lineno"> 7</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># of the Software, and to permit persons to whom the Software is furnished to do</tt> </tt>
+<a name="L8"></a><tt class="py-lineno"> 8</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># so, subject to the following conditions:</tt> </tt>
+<a name="L9"></a><tt class="py-lineno"> 9</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment">#</tt> </tt>
+<a name="L10"></a><tt class="py-lineno">10</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># The above copyright notice and this permission notice shall be included in all</tt> </tt>
+<a name="L11"></a><tt class="py-lineno">11</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># copies or substantial portions of the Software.</tt> </tt>
+<a name="L12"></a><tt class="py-lineno">12</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment">#</tt> </tt>
+<a name="L13"></a><tt class="py-lineno">13</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</tt> </tt>
+<a name="L14"></a><tt class="py-lineno">14</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</tt> </tt>
+<a name="L15"></a><tt class="py-lineno">15</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</tt> </tt>
+<a name="L16"></a><tt class="py-lineno">16</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</tt> </tt>
+<a name="L17"></a><tt class="py-lineno">17</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</tt> </tt>
+<a name="L18"></a><tt class="py-lineno">18</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</tt> </tt>
+<a name="L19"></a><tt class="py-lineno">19</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># SOFTWARE.</tt> </tt>
+<a name="L20"></a><tt class="py-lineno">20</tt>  <tt class="py-line"><tt class="py-comment"></tt> </tt>
+<a name="L21"></a><tt class="py-lineno">21</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">os</tt> </tt>
+<a name="L22"></a><tt class="py-lineno">22</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt id="link-0" class="py-name" targets="Package pysmug=pysmug-module.html"><a title="pysmug" class="py-name" href="#" onclick="return doclink('link-0', 'pysmug', 'link-0');">pysmug</a></tt> </tt>
+<a name="L23"></a><tt class="py-lineno">23</tt>  <tt class="py-line"> </tt>
+<a name="L24"></a><tt class="py-lineno">24</tt>  <tt class="py-line"><tt class="py-comment">#####</tt> </tt>
+<a name="L25"></a><tt class="py-lineno">25</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment">#</tt> </tt>
+<a name="L26"></a><tt class="py-lineno">26</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># 1) scan directory structure computing (year, date) pairs in existence</tt> </tt>
+<a name="L27"></a><tt class="py-lineno">27</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># 2) query all albums looking for Category=Backup</tt> </tt>
+<a name="L28"></a><tt class="py-lineno">28</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># 3) find missing, deleted albums</tt> </tt>
+<a name="L29"></a><tt class="py-lineno">29</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># 4) *optional* for each deleted directory, delete album</tt> </tt>
+<a name="L30"></a><tt class="py-lineno">30</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># 5) for each additional directory, create album</tt> </tt>
+<a name="L31"></a><tt class="py-lineno">31</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># 6) query albums again to make sure smugmug has them all</tt> </tt>
+<a name="L32"></a><tt class="py-lineno">32</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment">#</tt> </tt>
+<a name="L33"></a><tt class="py-lineno">33</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment">######</tt> </tt>
+<a name="L34"></a><tt class="py-lineno">34</tt>  <tt class="py-line"><tt class="py-comment"></tt> </tt>
+<a name="SmugSync"></a><div id="SmugSync-def"><a name="L35"></a><tt class="py-lineno">35</tt> <a class="py-toggle" href="#" id="SmugSync-toggle" onclick="return toggle('SmugSync');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="pysmug.smugsync.SmugSync-class.html">SmugSync</a><tt class="py-op">:</tt> </tt>
+</div><div id="SmugSync-collapsed" style="display:none;" pad="++" indent="++++"></div><div id="SmugSync-expanded"><a name="L36"></a><tt class="py-lineno">36</tt>  <tt class="py-line">  <tt class="py-docstring">"""Synchronize a local directory with SmugMug albums.</tt> </tt>
+<a name="L37"></a><tt class="py-lineno">37</tt>  <tt class="py-line"><tt class="py-docstring">  """</tt> </tt>
+<a name="SmugSync.__init__"></a><div id="SmugSync.__init__-def"><a name="L38"></a><tt class="py-lineno">38</tt> <a class="py-toggle" href="#" id="SmugSync.__init__-toggle" onclick="return toggle('SmugSync.__init__');">-</a><tt class="py-line">  <tt class="py-keyword">def</tt> <a class="py-def-name" href="pysmug.smugsync.SmugSync-class.html#__init__">__init__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">smugmug</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SmugSync.__init__-collapsed" style="display:none;" pad="++" indent="++++++"></div><div id="SmugSync.__init__-expanded"><a name="L39"></a><tt class="py-lineno">39</tt>  <tt class="py-line">    <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">m</tt> <tt class="py-op">=</tt> <tt id="link-1" class="py-name" targets="Module pysmug.smugmug=pysmug.smugmug-module.html,Method pysmug.smugsync.SmugSync.smugmug()=pysmug.smugsync.SmugSync-class.html#smugmug"><a title="pysmug.smugmug
+pysmug.smugsync.SmugSync.smugmug" class="py-name" href="#" onclick="return doclink('link-1', 'smugmug', 'link-1');">smugmug</a></tt> <tt class="py-keyword">or</tt> <tt id="link-2" class="py-name"><a title="pysmug" class="py-name" href="#" onclick="return doclink('link-2', 'pysmug', 'link-0');">pysmug</a></tt><tt class="py-op">.</tt><tt id="link-3" class="py-name" targets="Function pysmug.login()=pysmug-module.html#login"><a title="pysmug.login" class="py-name" href="#" onclick="return doclink('link-3', 'login', 'link-3');">login</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L40"></a><tt class="py-lineno">40</tt>  <tt class="py-line"> </tt>
+<a name="SmugSync.filesystem"></a><div id="SmugSync.filesystem-def"><a name="L41"></a><tt class="py-lineno">41</tt> <a class="py-toggle" href="#" id="SmugSync.filesystem-toggle" onclick="return toggle('SmugSync.filesystem');">-</a><tt class="py-line">  <tt class="py-keyword">def</tt> <a class="py-def-name" href="pysmug.smugsync.SmugSync-class.html#filesystem">filesystem</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">directory</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SmugSync.filesystem-collapsed" style="display:none;" pad="++" indent="++++++"></div><div id="SmugSync.filesystem-expanded"><a name="L42"></a><tt class="py-lineno">42</tt>  <tt class="py-line">    <tt class="py-docstring">"""Scan the file system to produce a ((subcategory, title), filename) generator.</tt> </tt>
+<a name="L43"></a><tt class="py-lineno">43</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L44"></a><tt class="py-lineno">44</tt>  <tt class="py-line"><tt class="py-docstring">    @param directory: the root of the directory tree</tt> </tt>
+<a name="L45"></a><tt class="py-lineno">45</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+<a name="L46"></a><tt class="py-lineno">46</tt>  <tt class="py-line">    <tt class="py-keyword">while</tt> <tt class="py-name">directory</tt><tt class="py-op">[</tt><tt class="py-op">-</tt><tt class="py-number">1</tt><tt class="py-op">]</tt> <tt class="py-op">==</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">sep</tt><tt class="py-op">:</tt> </tt>
+<a name="L47"></a><tt class="py-lineno">47</tt>  <tt class="py-line">      <tt class="py-name">source</tt> <tt class="py-op">=</tt> <tt class="py-name">source</tt><tt class="py-op">[</tt><tt class="py-op">:</tt><tt class="py-op">-</tt><tt class="py-number">1</tt><tt class="py-op">]</tt> </tt>
+<a name="L48"></a><tt class="py-lineno">48</tt>  <tt class="py-line"> </tt>
+<a name="L49"></a><tt class="py-lineno">49</tt>  <tt class="py-line">    <tt class="py-keyword">for</tt> <tt class="py-name">root</tt><tt class="py-op">,</tt> <tt class="py-name">dns</tt><tt class="py-op">,</tt> <tt class="py-name">fns</tt> <tt class="py-keyword">in</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">walk</tt><tt class="py-op">(</tt><tt class="py-name">directory</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L50"></a><tt class="py-lineno">50</tt>  <tt class="py-line">      <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">fns</tt><tt class="py-op">:</tt> </tt>
+<a name="L51"></a><tt class="py-lineno">51</tt>  <tt class="py-line">        <tt class="py-keyword">continue</tt> </tt>
+<a name="L52"></a><tt class="py-lineno">52</tt>  <tt class="py-line">      <tt class="py-name">album</tt> <tt class="py-op">=</tt> <tt class="py-name">tuple</tt><tt class="py-op">(</tt><tt class="py-op">[</tt><tt class="py-name">x</tt> <tt class="py-keyword">for</tt> <tt class="py-name">x</tt> <tt class="py-keyword">in</tt> <tt class="py-name">root</tt><tt class="py-op">.</tt><tt class="py-name">replace</tt><tt class="py-op">(</tt><tt class="py-name">directory</tt><tt class="py-op">,</tt> <tt class="py-string">""</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt class="py-name">split</tt><tt class="py-op">(</tt><tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">sep</tt><tt class="py-op">)</tt> <tt class="py-keyword">if</tt> <tt class="py-name">x</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+<a name="L53"></a><tt class="py-lineno">53</tt>  <tt class="py-line">      <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">album</tt><tt class="py-op">:</tt> </tt>
+<a name="L54"></a><tt class="py-lineno">54</tt>  <tt class="py-line">        <tt class="py-keyword">continue</tt> </tt>
+<a name="L55"></a><tt class="py-lineno">55</tt>  <tt class="py-line">      <tt class="py-keyword">for</tt> <tt class="py-name">fn</tt> <tt class="py-keyword">in</tt> <tt class="py-name">fns</tt><tt class="py-op">:</tt> </tt>
+<a name="L56"></a><tt class="py-lineno">56</tt>  <tt class="py-line">        <tt class="py-keyword">yield</tt> <tt class="py-op">(</tt><tt class="py-name">album</tt><tt class="py-op">,</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">path</tt><tt class="py-op">.</tt><tt class="py-name">join</tt><tt class="py-op">(</tt><tt class="py-name">root</tt><tt class="py-op">,</tt> <tt class="py-name">fn</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L57"></a><tt class="py-lineno">57</tt>  <tt class="py-line"> </tt>
+<a name="SmugSync.smugmug"></a><div id="SmugSync.smugmug-def"><a name="L58"></a><tt class="py-lineno">58</tt> <a class="py-toggle" href="#" id="SmugSync.smugmug-toggle" onclick="return toggle('SmugSync.smugmug');">-</a><tt class="py-line">  <tt class="py-keyword">def</tt> <a class="py-def-name" href="pysmug.smugsync.SmugSync-class.html#smugmug">smugmug</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">category</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SmugSync.smugmug-collapsed" style="display:none;" pad="++" indent="++++++"></div><div id="SmugSync.smugmug-expanded"><a name="L59"></a><tt class="py-lineno">59</tt>  <tt class="py-line">    <tt class="py-docstring">"""Scan the album tree to produce a ((subcategory, title), filename) generator.</tt> </tt>
+<a name="L60"></a><tt class="py-lineno">60</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L61"></a><tt class="py-lineno">61</tt>  <tt class="py-line"><tt class="py-docstring">    @param category: the root category for backup albums</tt> </tt>
+<a name="L62"></a><tt class="py-lineno">62</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+<a name="L63"></a><tt class="py-lineno">63</tt>  <tt class="py-line">    <tt id="link-4" class="py-name"><a title="pysmug.smugmug
+pysmug.smugsync.SmugSync.smugmug" class="py-name" href="#" onclick="return doclink('link-4', 'smugmug', 'link-1');">smugmug</a></tt> <tt class="py-op">=</tt> <tt class="py-name">dict</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L64"></a><tt class="py-lineno">64</tt>  <tt class="py-line">    <tt class="py-name">b</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">m</tt><tt class="py-op">.</tt><tt id="link-5" class="py-name" targets="Method pysmug.smugmug.SmugBase.batch()=pysmug.smugmug.SmugBase-class.html#batch"><a title="pysmug.smugmug.SmugBase.batch" class="py-name" href="#" onclick="return doclink('link-5', 'batch', 'link-5');">batch</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L65"></a><tt class="py-lineno">65</tt>  <tt class="py-line">    <tt class="py-keyword">for</tt> <tt class="py-name">a</tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">m</tt><tt class="py-op">.</tt><tt class="py-name">albums_get</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">[</tt><tt class="py-string">"Albums"</tt><tt class="py-op">]</tt><tt class="py-op">:</tt> </tt>
+<a name="L66"></a><tt class="py-lineno">66</tt>  <tt class="py-line">      <tt class="py-keyword">if</tt> <tt class="py-name">a</tt><tt class="py-op">[</tt><tt class="py-string">"Category"</tt><tt class="py-op">]</tt><tt class="py-op">[</tt><tt class="py-string">"Name"</tt><tt class="py-op">]</tt> <tt class="py-op">==</tt> <tt class="py-name">category</tt><tt class="py-op">:</tt> </tt>
+<a name="L67"></a><tt class="py-lineno">67</tt>  <tt class="py-line">        <tt class="py-name">albumId</tt> <tt class="py-op">=</tt> <tt class="py-name">a</tt><tt class="py-op">[</tt><tt class="py-string">"id"</tt><tt class="py-op">]</tt> </tt>
+<a name="L68"></a><tt class="py-lineno">68</tt>  <tt class="py-line">        <tt id="link-6" class="py-name"><a title="pysmug.smugmug
+pysmug.smugsync.SmugSync.smugmug" class="py-name" href="#" onclick="return doclink('link-6', 'smugmug', 'link-1');">smugmug</a></tt><tt class="py-op">[</tt><tt class="py-name">albumId</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-op">(</tt><tt class="py-name">a</tt><tt class="py-op">[</tt><tt class="py-string">"SubCategory"</tt><tt class="py-op">]</tt><tt class="py-op">[</tt><tt class="py-string">"Name"</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> <tt class="py-name">a</tt><tt class="py-op">[</tt><tt class="py-string">"Title"</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+<a name="L69"></a><tt class="py-lineno">69</tt>  <tt class="py-line">        <tt class="py-name">b</tt><tt class="py-op">.</tt><tt class="py-name">images_get</tt><tt class="py-op">(</tt><tt class="py-name">AlbumID</tt><tt class="py-op">=</tt><tt class="py-name">albumId</tt><tt class="py-op">,</tt> <tt class="py-name">Heavy</tt><tt class="py-op">=</tt><tt class="py-number">1</tt><tt class="py-op">)</tt> </tt>
+<a name="L70"></a><tt class="py-lineno">70</tt>  <tt class="py-line">    <tt class="py-keyword">for</tt> <tt class="py-name">params</tt><tt class="py-op">,</tt> <tt class="py-name">results</tt> <tt class="py-keyword">in</tt> <tt class="py-name">b</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L71"></a><tt class="py-lineno">71</tt>  <tt class="py-line">      <tt class="py-comment"># the API can throw an exception if the album is empty!</tt> </tt>
+<a name="L72"></a><tt class="py-lineno">72</tt>  <tt class="py-line"><tt class="py-comment"></tt>      <tt class="py-name">albumId</tt> <tt class="py-op">=</tt> <tt class="py-name">params</tt><tt class="py-op">[</tt><tt class="py-string">"AlbumID"</tt><tt class="py-op">]</tt> </tt>
+<a name="L73"></a><tt class="py-lineno">73</tt>  <tt class="py-line">      <tt class="py-keyword">for</tt> <tt class="py-name">image</tt> <tt class="py-keyword">in</tt> <tt class="py-name">results</tt><tt class="py-op">.</tt><tt class="py-name">get</tt><tt class="py-op">(</tt><tt class="py-string">"Images"</tt><tt class="py-op">,</tt> <tt class="py-op">[</tt><tt class="py-op">]</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L74"></a><tt class="py-lineno">74</tt>  <tt class="py-line">        <tt class="py-keyword">yield</tt> <tt class="py-op">(</tt><tt id="link-7" class="py-name"><a title="pysmug.smugmug
+pysmug.smugsync.SmugSync.smugmug" class="py-name" href="#" onclick="return doclink('link-7', 'smugmug', 'link-1');">smugmug</a></tt><tt class="py-op">[</tt><tt class="py-name">albumId</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> <tt class="py-name">image</tt><tt class="py-op">[</tt><tt class="py-string">"FileName"</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L75"></a><tt class="py-lineno">75</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pysmug-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0beta1 on Tue Jan 29 13:21:46 2008
+    </td>
+    <td align="right" class="footer">
+      <a href="http://epydoc.sourceforge.net">http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie()
+  // -->
+</script>
+  
+</body>
+</html>
