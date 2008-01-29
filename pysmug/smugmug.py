@@ -146,7 +146,7 @@ class SmugBase(object):
   def images_upload(self, AlbumID=None, ImageID=None, Data=None, FileName=None, **kwargs):
     """Upload the corresponding image.
 
-    ** Note: one of ImageID or AlbumID must be present, but not both **
+    B{One of ImageID or AlbumID must be present, but not both.}
 
     @param Data: the binary data of the image
     @param ImageID: the id of the image to replace
@@ -249,6 +249,8 @@ class SmugMug(SmugBase):
 
     The primary purpose for this method is to provide an easy
     mapping between name and id.
+
+    I{This method is not a standard smugmug method.}
     """
     # @todo - how can this be integrated with SmugBatch?
     methods = {
@@ -308,6 +310,8 @@ class SmugBatch(SmugBase):
       self._batch = list()
 
   def _handle_response(self, c):
+    """Forces `check` to be `False` so the iteration does not halt.
+    """
     try:
       return super(SmugBatch, self)._handle_response(c, check=False)
     except Exception, e:
@@ -357,7 +361,7 @@ class SmugBatch(SmugBase):
   def images_download(self, AlbumID=None, Path=None, Format="Original"):
     """Download the entire contents of an album to the specified path.
     
-    * This method is not a standard smugmug method. *
+    I{This method is not a standard smugmug method.}
 
     @param AlbumID: the album to download
     @param Path: the path to store the images
