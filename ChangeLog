@@ -10,8 +10,8 @@ Changes in v0.2:
 	  rather than thrown
 	* better documentation
 	* added login_withHash()
-	* no longer raise an exception if no events pending for
-	  a batch execution -- return an empty iteration
+	* no longer raise an exception if no events are pending
+		for a batch execution -- return an empty iteration
 	* images_upload() will attempt to open the FileName if
 	  Data is None
 	* login() will try all three login methods
