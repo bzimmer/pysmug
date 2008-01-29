@@ -267,7 +267,10 @@ class SmugBatch(SmugBase):
       self._batch = list()
 
   def _handle_response(self, c):
-    return super(SmugBatch, self)._handle_response(c, check=False)
+    try:
+      return super(SmugBatch, self)._handle_response(c, check=False)
+    except Exception, e:
+      return {"exception":str(e), "stat":"fail", "code":-1}
 
   def _multi(self, batch, func, n=None):
 
