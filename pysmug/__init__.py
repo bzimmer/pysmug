@@ -39,6 +39,16 @@ def login(conf=None):
 
   If no configuration file specified then a file named C{.pysmugrc} in
   the user's home directory is used if it exists.
+
+  The following order determines the C{login} method used:
+
+    - B{In all cases C{APIKey} is required.}
+
+    1. If C{PasswordHash} is in configuration, then C{login_withHash} is used.
+      - C{UserID} is additionally required.
+    2. If C{Password} is in configuration, then C{login_withPassword} is used.
+      - C{EmailAddress} is additionally required.
+    3. Else C{login_anonymously} is used.
   
   @param conf: path to a configuration file
   @raise ValueError: if no configuration file is found

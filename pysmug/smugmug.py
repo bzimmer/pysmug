@@ -120,9 +120,9 @@ class SmugBase(object):
     which contains upload & download times.
 
     @param c: a completed connection
-    @param check: if `not stat == ok` raise an exception
+    @param check: if C{not stat == ok} raise an exception
     @return: a dictionary of results corresponding to the SmugMug response
-    @raise SmugMugException: if an error exists in the response and `check` is True
+    @raise SmugMugException: if an error exists in the response and C{check} is True
     """
     #### HACK ####
     # for some reason the response from smugmug
@@ -310,7 +310,7 @@ class SmugBatch(SmugBase):
       self._batch = list()
 
   def _handle_response(self, c):
-    """Forces `check` to be `False` so the iteration does not halt.
+    """Forces C{check} to be C{False} so the iteration does not halt.
     """
     try:
       return super(SmugBatch, self)._handle_response(c, check=False)
