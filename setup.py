@@ -19,6 +19,10 @@ class epydoc(Command):
     pass
   
   def run(self):
+    if not os.path.exists("doc"):
+      os.mkdir("doc")
+    if not os.path.exists("doc/html"):
+      os.mkdir("doc/html")
     stat = os.system("epydoc --config epydoc.cfg pysmug/*.py")
     if not stat == 0:
       raise DistutilsExecError("failed to run epydoc")
