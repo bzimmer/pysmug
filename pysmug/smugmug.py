@@ -127,6 +127,7 @@ class SmugBase(object):
     condition.  It additionally adds a C{Statistics} item to the response
     which contains upload & download times.
 
+    @type c: PycURL C{Curl}
     @param c: a completed connection
     @return: a dictionary of results corresponding to the SmugMug response
     @raise SmugMugException: if an error exists in the response
@@ -323,6 +324,9 @@ class SmugBatch(SmugBase):
 
   def _handle_response(self, c):
     """Catch any exceptions and return a valid response.
+    
+    @type c: PycURL C{Curl}
+    @param c: a completed connection
     """
     try:
       return super(SmugBatch, self)._handle_response(c)
@@ -330,7 +334,24 @@ class SmugBatch(SmugBase):
       return {"exception":e, "stat":"fail", "code":-1}
 
   def _multi(self, batch, func, n=None):
+    """Perform the concurrent execution of all pending requests.
 
+    This method iterates over all the outstanding working at most
+    C{n} concurrently.  On completion of each request the callback
+    function C{func} is invoked with the completed PycURL instance
+    from which the C{params} and C{response} can be extracted.
+
+    There is no distinction between a failure or success reponse,
+    both are C{yield}ed.
+
+    After receiving I{all} responses, the requests are closed.
+
+    @type batch: list<PycURL C{Curl}>
+    @param batch: a list of pending requests
+    @param func: callback function invoked on each completed request
+    @type n: int
+    @param n: the number of concurrent events to execute
+    """
     if not batch:
       raise StopIteration()
 
