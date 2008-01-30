@@ -8,6 +8,7 @@ Changes in v0.2:
 	* added categories_getTree()
 	* in batch mode, exceptions are returned in the response
 	  rather than thrown
+	* http errors are now communicated through exceptions
 	* better documentation
 	* added login_withHash()
 	* no longer raise an exception if no events are pending

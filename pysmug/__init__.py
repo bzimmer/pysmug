@@ -28,11 +28,9 @@ r"""A high-performance client to the SmugMug API.
    - U{SmugMug API <http://smugmug.jot.com/WikiHome/API/Versions/1.2.1>}
 """
 
-__all__ = ("__version__", "SmugMug", "SmugBatch", "SmugMugException", "login")
-
 __version__ = "0.2"
 
-from pysmug.smugmug import SmugMug, SmugBatch, SmugMugException
+from pysmug.smugmug import SmugMug, SmugBatch, SmugMugException, HTTPException
 
 def login(conf=None):
   """Login to smugmug using the contents of the configuration file.

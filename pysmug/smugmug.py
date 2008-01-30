@@ -49,6 +49,14 @@ class SmugMugException(Exception):
   def __init__(self, message, code=0):
     super(SmugMugException, self).__init__(message)
     self.code = code
+  
+  def __str__(self):
+    return "%s (code=%d)" % (super(SmugMugException, self).__str__(), self.code)
+  __repr__ = __str__
+
+class HTTPException(SmugMugException):
+  """An exception thrown during http(s) communication."""
+  pass
 
 class SmugBase(object):
   """Abstract functionality for SmugMug API clients."""
@@ -112,7 +120,7 @@ class SmugBase(object):
     c.setopt(c.SSL_VERIFYPEER, False)
     return c
 
-  def _handle_response(self, c, check=True):
+  def _handle_response(self, c):
     """Handle the response from SmugMug.
 
     This method decodes the JSON response and checks for any error
@@ -120,18 +128,22 @@ class SmugBase(object):
     which contains upload & download times.
 
     @param c: a completed connection
-    @param check: if C{not stat == ok} raise an exception
     @return: a dictionary of results corresponding to the SmugMug response
-    @raise SmugMugException: if an error exists in the response and C{check} is True
+    @raise SmugMugException: if an error exists in the response
     """
+    code = c.getinfo(c.HTTP_CODE)
+    if not code == 200:
+      raise HTTPException(c.errstr(), code)
+
     #### HACK ####
     # for some reason the response from smugmug
     #  is encoded incorrectly
     json = c.response.getvalue().replace("\/", "/")
     ##############
+    
     logging.debug(json)
     resp = jsondecode(json)
-    if check and not resp["stat"] == "ok":
+    if not resp["stat"] == "ok":
       raise SmugMugException(resp["message"], resp["code"])
     resp["Statistics"] = dict((key, c.getinfo(const)) for (key, const) in _curlinfo)
     return resp
@@ -310,12 +322,12 @@ class SmugBatch(SmugBase):
       self._batch = list()
 
   def _handle_response(self, c):
-    """Forces C{check} to be C{False} so the iteration does not halt.
+    """Catch any exceptions and return a valid response.
     """
     try:
-      return super(SmugBatch, self)._handle_response(c, check=False)
+      return super(SmugBatch, self)._handle_response(c)
     except Exception, e:
-      return {"exception":str(e), "stat":"fail", "code":-1}
+      return {"exception":e, "stat":"fail", "code":-1}
 
   def _multi(self, batch, func, n=None):
 
