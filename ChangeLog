@@ -4,7 +4,7 @@ change details.
 pysmug ChangeLog
 ================
 
-Changes in v0.2:
+Changes in v0.2 (01-30-2008):
 	* added categories_getTree()
 	* in batch mode, exceptions are returned in the response
 	  rather than thrown
@@ -17,3 +17,5 @@ Changes in v0.2:
 	  Data is None
 	* login() will try all three login methods
 
+Changes in v0.1 (01-22-2008):
+	* initial
