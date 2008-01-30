@@ -39,7 +39,7 @@ def main(cls):
     except SmugMugException, e:
       # too bad error codes are not consistent
       if e.message in ("invalid user", "invalid session"):
-        p.error("login with username and password")
+        p.error("login with email address and password")
       raise
   raise SystemExit()
 
