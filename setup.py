@@ -7,6 +7,7 @@ import pysmug
 from distutils.core import setup
 from distutils.cmd import Command
 from distutils.errors import DistutilsExecError
+from distutils.command.sdist import sdist as _sdist
 
 class epydoc(Command):
   description = "Builds the documentation."
@@ -23,6 +24,11 @@ class epydoc(Command):
     stat = os.system("epydoc --config epydoc.cfg pysmug/*.py")
     if not stat == 0:
       raise DistutilsExecError("failed to run epydoc")
+
+class sdist(_sdist):
+  def run(self):
+    self.run_command("epydoc")
+    _sdist.run(self)
 
 setup(
   name = "pysmug",
@@ -43,6 +49,6 @@ setup(
     'Programming Language :: Python',
     'Topic :: Software Development :: Libraries :: Python Modules',
   ],
-  cmdclass = {"epydoc":epydoc},
+  cmdclass = {"epydoc":epydoc, "sdist":sdist},
 )
 
