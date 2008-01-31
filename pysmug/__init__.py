@@ -32,7 +32,7 @@ __version__ = "0.2"
 
 from pysmug.smugmug import SmugMug, SmugBatch, SmugMugException, HTTPException
 
-def login(conf=None):
+def login(conf=None, klass=SmugMug):
   """Login to smugmug using the contents of the configuration file.
 
   If no configuration file specified then a file named C{.pysmugrc} in
@@ -49,6 +49,8 @@ def login(conf=None):
     3. Else C{login_anonymously} is used.
   
   @param conf: path to a configuration file
+  @type klass: C{SmugMug} class
+  @param klass: class to instantiate
   @raise ValueError: if no configuration file is found
   """
   
@@ -61,7 +63,7 @@ def login(conf=None):
     if not os.path.exists(conf):
       raise ValueError("'%s' not found" % (conf))
   config = eval(open(conf).read())
-  m = SmugMug()
+  m = klass()
   if "PasswordHash" in config:
     return m.login_withHash(**config)
   elif "Password" in config:
