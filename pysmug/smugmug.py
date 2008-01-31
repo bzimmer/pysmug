@@ -88,8 +88,8 @@ class SmugBase(object):
       for key, value in defaults.iteritems():
         if key not in kwargs:
           kwargs[key] = value
-        # remove a default by assigning None
-        if key in kwargs and kwargs[key] is None:
+        elif kwargs[key] is None:
+          # remove a default by assigning None
           del kwargs[key]
       if "SessionID" in kwargs and kwargs["SessionID"] is None:
         raise SmugMugException("not authenticated -- no valid session id")
