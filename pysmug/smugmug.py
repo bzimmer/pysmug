@@ -28,12 +28,12 @@ import cStringIO
 from itertools import islice
 
 try:
-  from cjson import decode as jsondecode
+  from cjson import decode as _jsondecode
 except ImportError:
-  from simplejson import loads as jsondecode
+  from simplejson import loads as _jsondecode
 
 from pysmug import __version__
-from pysmug.methods import methods as _methods
+from pysmug.methods import methods as _methods, apikeys as _apikeys
 
 _userAgent = "pysmug(%s)" % (__version__)
 
@@ -84,6 +84,7 @@ class SmugBase(object):
       """Dynamically created SmugMug function call."""
       if args:
         raise SmugMugException("smugmug methods take no arguments, only named parameters")
+      #kwargs = self._prepare_keywords(**kwargs)
       defaults = {"method": method, "SessionID":self.sessionId}
       for key, value in defaults.iteritems():
         if key not in kwargs:
@@ -143,14 +144,42 @@ class SmugBase(object):
     ##############
     
     logging.debug(json)
-    resp = jsondecode(json)
+    resp = _jsondecode(json)
     if not resp["stat"] == "ok":
       raise SmugMugException(resp["message"], resp["code"])
     resp["Statistics"] = dict((key, c.getinfo(const)) for (key, const) in _curlinfo)
     return resp
 
   def _perform(self, c):
+    """Execute the request.
+
+    A request pending execution.
+
+    @type c: PycURL C{Curl}
+    @param c: a pending request
+    """
     pass
+
+  def _prepare_keywords(self, **kwargs):
+    """Prepare the keywords for sending to SmugMug.
+
+    @param kwargs: the keywords to send to SmugMug
+    """
+    items = kwargs.items()
+    for k, v, in items:
+      if k == "method":
+        continue
+      lk = k.lower()
+      if lk in _apikeys:
+        del kwargs[k]
+        kwargs[_apikeys[lk]] = v
+      else:
+        del kwargs[k]
+        if lk.endswith("id"):
+          kwargs[lk[0].upper() + lk[1:-2] + "ID"] = v
+        else:
+          kwargs[lk[0].upper() + lk[1:]] = v
+    return kwargs
   
   def batch(self, protocol=None):
     """Return an instance of a batch-oriented SmugMug client."""

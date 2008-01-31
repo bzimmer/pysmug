@@ -17,9 +17,14 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-import sets
 
-methods = sets.Set(
+apikeys = {
+  "apikey":"APIKey",
+  "filename":"FileName",
+  "passwordhash":"PasswordHash",
+}
+
+methods = set(
 ['smugmug.albums.applyWatermark',
  'smugmug.albums.changeSettings',
  'smugmug.albums.create',
