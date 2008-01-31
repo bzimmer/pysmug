@@ -22,6 +22,7 @@ apikeys = {
   "apikey":"APIKey",
   "filename":"FileName",
   "passwordhash":"PasswordHash",
+  "emailaddress":"EmailAddress",
 }
 
 methods = set(
