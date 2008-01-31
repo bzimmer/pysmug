@@ -84,7 +84,7 @@ class SmugBase(object):
       """Dynamically created SmugMug function call."""
       if args:
         raise SmugMugException("smugmug methods take no arguments, only named parameters")
-      #kwargs = self._prepare_keywords(**kwargs)
+      kwargs = self._prepare_keywords(**kwargs)
       defaults = {"method": method, "SessionID":self.sessionId}
       for key, value in defaults.iteritems():
         if key not in kwargs:
