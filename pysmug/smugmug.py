@@ -185,16 +185,23 @@ class SmugBase(object):
     """Return an instance of a batch-oriented SmugMug client."""
     return SmugBatch(self.sessionId, protocol or self.protocol)
   
-  def images_upload(self, AlbumID=None, ImageID=None, Data=None, FileName=None, **kwargs):
+  def images_upload(self, **kwargs):
     """Upload the corresponding image.
 
     B{One of ImageID or AlbumID must be present, but not both.}
 
-    @param Data: the binary data of the image
-    @param ImageID: the id of the image to replace
-    @param AlbumID: the name of the album in which to add the photo
-    @param FileName: the name of the file
+    @param kwargs: keyword arguments:
+      - C{Data}: the binary data of the image
+      - C{ImageID}: the id of the image to replace
+      - C{AlbumID}: the name of the album in which to add the photo
+      - C{FileName}: the name of the file
     """
+    kwargs = self._prepare_keywords(**kwargs)
+    AlbumID = kwargs.pop("AlbumID", None)
+    ImageID = kwargs.pop("ImageID", None)
+    Data = kwargs.pop("Data", None)
+    FileName = kwargs.pop("FileName", None)
+
     if (ImageID is not None) and (AlbumID is not None):
       raise SmugMugException("must set only one of AlbumID or ImageID")
 
@@ -242,41 +249,49 @@ class SmugMug(SmugBase):
     finally:
       c.close()
 
-  def _login(self, handler, **kwargs):
+  def _login(self, handler, keywords, **kwargs):
+    kwargs = self._prepare_keywords(**kwargs)
+
+    # check for the required keywords
+    #keys = set(kwargs.keys())
+
     login = self._make_handler(handler)
     session = login(SessionID=None, **kwargs)
     self.sessionId = session['Login']['Session']['id']
     return self
 
-  def login_anonymously(self, APIKey=None):
-    """Login into SmugMug anonymously.
+  def login_anonymously(self, **kwargs):
+    """Login into SmugMug anonymously using the API key.
     
-    @param APIKey: a SmugMug api key
+    @param kwargs: keyword arguments:
+      - C{APIKey}: a SmugMug api key
     @return: the SmugMug instance with a session established
     """
-    return self._login("login_anonymously", APIKey=APIKey)
+    return self._login("login_anonymously", set(["APIKey"]), **kwargs)
 
-  def login_withHash(self, UserID=None, PasswordHash=None, APIKey=None):
-    """Login into SmugMug with username, password and API key.
+  def login_withHash(self, **kwargs):
+    """Login into SmugMug with user id, password hash and API key.
 
-    @param UserID: the account holder's user id
-    @param PasswordHash: the account holder's password hash
-    @param APIKey: a SmugMug api key
+    @param kwargs: keyword arguments:
+      - C{UserID}: the account holder's user id
+      - C{PasswordHash}: the account holder's password hash
+      - C{APIKey}: a SmugMug api key
     @return: the SmugMug instance with a session established
     """
     return self._login("login_withHash",
-      UserID=UserID, PasswordHash=PasswordHash, APIKey=APIKey)
+      set(["UserID", "PasswordHash", "APIKey"]), **kwargs)
 
-  def login_withPassword(self, EmailAddress=None, Password=None, APIKey=None):
-    """Login into SmugMug with username, password and API key.
+  def login_withPassword(self, **kwargs):
+    """Login into SmugMug with email address, password and API key.
 
-    @param EmailAddress: the account holder's email address
-    @param Password: the account holder's password
-    @param APIKey: a SmugMug api key
+    @param kwargs: keyword arguments:
+      - C{EmailAddress}: the account holder's email address
+      - C{Password}: the account holder's password
+      - C{APIKey}: a SmugMug api key
     @return: the SmugMug instance with a session established
     """
     return self._login("login_withPassword",
-      EmailAddress=EmailAddress, Password=Password, APIKey=APIKey)
+      set(["EmailAddress", "Password", "APIKey"]), **kwargs)
 
   def categories_getTree(self):
     """Return a tree of categories and sub-categories.
@@ -420,16 +435,22 @@ class SmugBatch(SmugBase):
         batch.pop().close()
       except: pass
 
-  def images_download(self, AlbumID=None, Path=None, Format="Original"):
+  def images_download(self, **kwargs):
     """Download the entire contents of an album to the specified path.
     
     I{This method is not a standard smugmug method.}
 
-    @param AlbumID: the album to download
-    @param Path: the path to store the images
-    @param Format: the size of the image (check smugmug for possible sizes)
+    @param kwargs: keyword arguments
+      - C{AlbumID}: the album to download
+      - C{Path}: the path to store the images
+      - C{Format}: the size of the image (check smugmug for possible sizes)
     @return: a generator of responses containing the filenames saved locally
     """
+    kwargs = self._prepare_keywords(**kwargs)
+    AlbumID = kwargs.get("AlbumID", None)
+    Path = kwargs.get("Path", None)
+    Format = kwargs.get("Format", "Original")
+
     path = os.path.abspath(os.getcwd() if not Path else Path)
     
     self.images_get(AlbumID=AlbumID, Heavy=1)

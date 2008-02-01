@@ -4,6 +4,12 @@ change details.
 pysmug ChangeLog
 ================
 
+Changes in v0.3 ():
+	* keyword arguments can have any case and pysmug
+	  will correctly format them to the SmugMug API
+	* fixed bug in images_upload() where iterating
+	  additional kwargs failed
+
 Changes in v0.2 (01-30-2008):
 	* added categories_getTree()
 	* in batch mode, exceptions are returned in the response
