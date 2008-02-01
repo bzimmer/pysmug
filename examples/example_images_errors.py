@@ -4,7 +4,7 @@ import smexample
 class Example(smexample.Example):
   
   def example(self, albumId):
-    m, b = self.m, self.m.batch(protocol="http!")
+    m, b = self.m, self.m.batch()
     album = m.albums_getInfo(AlbumID=albumId)
     print
     print "Album:", album["Album"]["Title"],

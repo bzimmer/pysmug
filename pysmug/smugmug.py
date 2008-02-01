@@ -59,13 +59,16 @@ class HTTPException(SmugMugException):
   pass
 
 class SmugBase(object):
-  """Abstract functionality for SmugMug API clients."""
+  """Abstract functionality for SmugMug API clients.
+  
+  @type secure: bool
+  @ivar secure: whether to use a secure http connection
+  @ivar sessionId: session id from smugmug.
+  """
 
-  def __init__(self, sessionId=None, protocol="https"):
-    self.protocol = protocol
-    """Communication protocol -- either C{http} or C{https}"""
+  def __init__(self, sessionId=None, secure=True):
+    self.secure = secure
     self.sessionId = sessionId
-    """Session id from smugmug."""
 
   def __getattr__(self, method):
     """Construct a dynamic handler for the SmugMug API."""
@@ -73,6 +76,10 @@ class SmugBase(object):
     if method.startswith('__'):
       raise AttributeError("no such attribute '%s'" % (method))
     return self._make_handler(method)
+
+  @property
+  def protocol(self):
+    return self.secure and "https" or "http"
 
   def _make_handler(self, method):
     method = "smugmug." + method.replace("_", ".")
@@ -127,6 +134,10 @@ class SmugBase(object):
     This method decodes the JSON response and checks for any error
     condition.  It additionally adds a C{Statistics} item to the response
     which contains upload & download times.
+    
+    @attention: for some reason the response from smugmug incorrectly
+                encodes filepath separators so the response string is
+                corrected prior to the decoding
 
     @type c: PycURL C{Curl}
     @param c: a completed connection
@@ -137,12 +148,9 @@ class SmugBase(object):
     if not code == 200:
       raise HTTPException(c.errstr(), code)
 
-    #### HACK ####
-    # for some reason the response from smugmug
-    #  is encoded incorrectly
+    # hack -- see @attention in method description
     json = c.response.getvalue().replace("\/", "/")
-    ##############
-    
+
     logging.debug(json)
     resp = _jsondecode(json)
     if not resp["stat"] == "ok":
@@ -163,11 +171,22 @@ class SmugBase(object):
   def _prepare_keywords(self, **kwargs):
     """Prepare the keywords for sending to SmugMug.
 
+    The following steps are followed::
+      1. If the key is C{method}, continue.
+      2. If the key starts with an upper case letter, continue.
+      3. If the key is in C{methods.apikeys}, replace the key.
+      4. If the key ends with C{id}, upper case the first letter
+         and C{ID} and replace the key.
+      5. Else, upper case the first letter only and replace the
+         key.
+
     @param kwargs: the keywords to send to SmugMug
     """
     items = kwargs.items()
     for k, v, in items:
       if k == "method":
+        continue
+      if k[0].isupper():
         continue
       lk = k.lower()
       if lk in _apikeys:
@@ -176,25 +195,24 @@ class SmugBase(object):
       else:
         del kwargs[k]
         if lk.endswith("id"):
-          kwargs[lk[0].upper() + lk[1:-2] + "ID"] = v
+          kwargs[lk[:-2].title() + "ID"] = v
         else:
-          kwargs[lk[0].upper() + lk[1:]] = v
+          kwargs[lk.title()] = v
     return kwargs
   
-  def batch(self, protocol=None):
+  def batch(self):
     """Return an instance of a batch-oriented SmugMug client."""
-    return SmugBatch(self.sessionId, protocol or self.protocol)
+    return SmugBatch(self.sessionId, secure=self.secure)
   
   def images_upload(self, **kwargs):
     """Upload the corresponding image.
 
     B{One of ImageID or AlbumID must be present, but not both.}
 
-    @param kwargs: keyword arguments:
-      - C{Data}: the binary data of the image
-      - C{ImageID}: the id of the image to replace
-      - C{AlbumID}: the name of the album in which to add the photo
-      - C{FileName}: the name of the file
+    @keyword data: the binary data of the image
+    @keyword imageId: the id of the image to replace
+    @keyword albumId: the name of the album in which to add the photo
+    @keyword filename: the name of the file
     """
     kwargs = self._prepare_keywords(**kwargs)
     AlbumID = kwargs.pop("AlbumID", None)
@@ -263,8 +281,7 @@ class SmugMug(SmugBase):
   def login_anonymously(self, **kwargs):
     """Login into SmugMug anonymously using the API key.
     
-    @param kwargs: keyword arguments:
-      - C{APIKey}: a SmugMug api key
+    @keyword APIKey: a SmugMug api key
     @return: the SmugMug instance with a session established
     """
     return self._login("login_anonymously", set(["APIKey"]), **kwargs)
@@ -272,10 +289,9 @@ class SmugMug(SmugBase):
   def login_withHash(self, **kwargs):
     """Login into SmugMug with user id, password hash and API key.
 
-    @param kwargs: keyword arguments:
-      - C{UserID}: the account holder's user id
-      - C{PasswordHash}: the account holder's password hash
-      - C{APIKey}: a SmugMug api key
+    @keyword userId: the account holder's user id
+    @keyword passwordHash: the account holder's password hash
+    @keyword APIKey: a SmugMug api key
     @return: the SmugMug instance with a session established
     """
     return self._login("login_withHash",
@@ -284,10 +300,9 @@ class SmugMug(SmugBase):
   def login_withPassword(self, **kwargs):
     """Login into SmugMug with email address, password and API key.
 
-    @param kwargs: keyword arguments:
-      - C{EmailAddress}: the account holder's email address
-      - C{Password}: the account holder's password
-      - C{APIKey}: a SmugMug api key
+    @keyword emailAddress: the account holder's email address
+    @keyword password: the account holder's password
+    @keyword APIKey: a SmugMug api key
     @return: the SmugMug instance with a session established
     """
     return self._login("login_withPassword",
@@ -308,8 +323,9 @@ class SmugMug(SmugBase):
     mapping between name and id.
 
     I{This method is not a standard smugmug method.}
+    
+    @todo: how can this be integrated with SmugBatch?
     """
-    # @todo - how can this be integrated with SmugBatch?
     methods = {
       "smugmug.categories.get":"Categories",
       "smugmug.subcategories.getAll":"SubCategories"
@@ -337,14 +353,18 @@ class SmugMug(SmugBase):
     return {"method":"pysmug.categories.getTree", "Categories":tree, "stat":"ok"}
 
 class SmugBatch(SmugBase):
-  """Batching version of a SmugMug client."""
+  """Batching version of a SmugMug client.
+
+  @type _batch: list<PycURL C{Curl}>
+  @ivar _batch: list of requests pending executions
+  @type concurrent: int
+  @ivar concurrent: number of concurrent requests to execute
+  """
 
   def __init__(self, *args, **kwargs):
     super(SmugBatch, self).__init__(*args, **kwargs)
     self._batch = list()
-    """A list of requests pending executions."""
     self.concurrent = kwargs.get("concurrent", 10)
-    """The number of concurrent requests to execute."""
   
   def _perform(self, c):
     """Store the request for later processing."""
@@ -440,10 +460,9 @@ class SmugBatch(SmugBase):
     
     I{This method is not a standard smugmug method.}
 
-    @param kwargs: keyword arguments
-      - C{AlbumID}: the album to download
-      - C{Path}: the path to store the images
-      - C{Format}: the size of the image (check smugmug for possible sizes)
+    @keyword albumId: the album to download
+    @keyword path: the path to store the images
+    @keyword format: the size of the image (check smugmug for possible sizes)
     @return: a generator of responses containing the filenames saved locally
     """
     kwargs = self._prepare_keywords(**kwargs)
