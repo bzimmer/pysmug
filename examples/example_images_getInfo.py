@@ -5,14 +5,14 @@ class Example(smexample.Example):
   
   def example(self, albumId):
     m, b = self.m, self.m.batch()
-    album = m.albums_getInfo(AlbumID=albumId)
+    album = m.albums_getInfo(albumID=albumId)
     print
     print "Album:", album["Album"]["Title"],
 
-    images = m.images_get(AlbumID=albumId)
+    images = m.images_get(albumID=albumId)
     for image in images["Images"]:
       # add each image to the batch
-      b.images_getInfo(ImageID=image["id"], Heavy=1)
+      b.images_getInfo(imageID=image["id"], heavy=1)
     
     count = len(b)
     print "(%d photos)" % (len(b))
