@@ -3,6 +3,7 @@
 # Written by Brian Zimmer
 
 import os
+import glob
 import pysmug
 from distutils.core import setup
 from distutils.cmd import Command
@@ -30,6 +31,17 @@ class sdist(_sdist):
     self.run_command("epydoc")
     _sdist.run(self)
 
+def datafiles():
+  """Returns a generator of (path, [files]) to install.
+  """
+  root = os.path.join("share", "doc", "pysmug-" + pysmug.__version__)
+  yield (root, ("ChangeLog", "LICENSE.txt", "README"))
+  for dn, pattern in (("doc/html", "*"), ("examples", "*.py"), ("tests", "*.py")):
+    files = glob.glob(os.path.join(dn, pattern))
+    if files:
+      yield (os.path.join(root, dn), files)
+data_files = list(datafiles())
+
 setup(
   name = "pysmug",
   version = pysmug.__version__,
@@ -39,6 +51,7 @@ setup(
   url = "http://code.google.com/p/pysmug",
   download_url = "http://pypi.python.org/pypi/pysmug/%s" % (pysmug.__version__),
   packages = ['pysmug'],
+  data_files = data_files,
   platforms = ['any'],
   license = "MIT License",
   classifiers = [
