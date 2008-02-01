@@ -64,9 +64,10 @@ def login(conf=None, klass=SmugMug):
       raise ValueError("'%s' not found" % (conf))
   config = eval(open(conf).read())
   m = klass()
-  if "PasswordHash" in config:
+  keys = set(x.lower() for x in config.keys())
+  if "passwordhash" in keys:
     return m.login_withHash(**config)
-  elif "Password" in config:
+  elif "password" in keys:
     return m.login_withPassword(**config)
   return m.login_anonymously(**config)
 
