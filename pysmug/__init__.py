@@ -28,7 +28,7 @@ r"""A high-performance client to the SmugMug API.
    - U{SmugMug API <http://smugmug.jot.com/WikiHome/API/Versions/1.2.1>}
 """
 
-__version__ = "0.2"
+__version__ = "0.3"
 
 from pysmug.smugmug import SmugMug, SmugBatch, SmugMugException, HTTPException
 
