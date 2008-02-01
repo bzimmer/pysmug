@@ -9,6 +9,9 @@ Changes in v0.3 ():
 	  will correctly format them to the SmugMug API
 	* fixed bug in images_upload() where iterating
 	  additional kwargs failed
+	* removed `protocol` ivar on SmugBase in favor of
+	  `secure`; `protocol` is now a property which returns
+		"http" or "https" depending on the `secure` ivar
 
 Changes in v0.2 (01-30-2008):
 	* added categories_getTree()
