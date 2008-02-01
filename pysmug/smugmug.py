@@ -217,7 +217,7 @@ class SmugBase(object):
       "X-Smug-FileName: " + filename,
       "X-Smug-SessionID: " + self.sessionId,
     ]
-    for (k, v) in kwargs:
+    for (k, v) in kwargs.items():
       # Caption, Keywords, Latitude, Longitude, Altitude
       headers.append("X-Smug-%s: %s" % (k, v))
 
