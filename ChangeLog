@@ -5,26 +5,26 @@ pysmug ChangeLog
 ================
 
 Changes in v0.3 ():
-	* keyword arguments can have any case and pysmug
-	  will correctly format them to the SmugMug API
-	* fixed bug in images_upload() where iterating
-	  additional kwargs failed
-	* removed `protocol` ivar on SmugBase in favor of
-	  `secure`; `protocol` is now a property which returns
-		"http" or "https" depending on the `secure` ivar
+  * keyword arguments can have any case and pysmug
+    will correctly format them to the SmugMug API
+  * fixed bug in images_upload() where iterating
+    additional kwargs failed
+  * removed `protocol` ivar on SmugBase in favor of
+    `secure`; `protocol` is now a property which returns
+    "http" or "https" depending on the `secure` ivar
 
 Changes in v0.2 (01-30-2008):
-	* added categories_getTree()
-	* in batch mode, exceptions are returned in the response
-	  rather than thrown
-	* http errors are now communicated through exceptions
-	* better documentation
-	* added login_withHash()
-	* no longer raise an exception if no events are pending
-	  for a batch execution -- return an empty iteration
-	* images_upload() will attempt to open the FileName if
-	  Data is None
-	* login() will try all three login methods
+  * added categories_getTree()
+  * in batch mode, exceptions are returned in the response
+    rather than thrown
+  * http errors are now communicated through exceptions
+  * better documentation
+  * added login_withHash()
+  * no longer raise an exception if no events are pending
+    for a batch execution -- return an empty iteration
+  * images_upload() will attempt to open the FileName if
+    Data is None
+  * login() will try all three login methods
 
 Changes in v0.1 (01-22-2008):
-	* initial
+  * initial
