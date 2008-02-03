@@ -1,14 +1,17 @@
 
 import os
 import glob
+from ConfigParser import ConfigParser
+
 from distutils.core import setup
 from distutils.cmd import Command
 from distutils.errors import DistutilsExecError
 from distutils.command.sdist import sdist as _sdist
 
-PACKAGE = "pysmug"
-DESCRIPTION = "A high-performance python client for the SmugMug API."
-
+p = ConfigParser()
+p.read("metainf.cfg")
+PACKAGE = p.get("main", "package")
+DESCRIPTION = p.get("main", "description")
 VERSION = __import__(PACKAGE).__version__
 
 class epydoc(Command):
