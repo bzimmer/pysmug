@@ -25,6 +25,8 @@ class epydoc(Command):
     pass
   
   def run(self):
+    if not os.path.exists("epydoc.cfg"):
+      return
     self.mkpath("doc/html")
     stat = os.system("epydoc --config epydoc.cfg %s/*.py" % (PACKAGE))
     if not stat == 0:
@@ -40,7 +42,7 @@ def datafiles():
   """
   def _datafiles():
     root = os.path.join("share", "doc", PACKAGE + "-" + VERSION)
-    yield (root, ("ChangeLog", "LICENSE.txt", "README"))
+    yield (root, [x for x in ("ChangeLog", "LICENSE", "README") if os.path.exists(x)])
     for dn, pattern in (("doc/html", "*"), ("examples", "*.py"), ("tests", "*.py")):
       files = glob.glob(os.path.join(dn, pattern))
       if files:
