@@ -64,9 +64,11 @@ class SmugBase(object):
   @type secure: bool
   @ivar secure: whether to use a secure http connection
   @ivar sessionId: session id from smugmug.
+  @ivar proxy: address of proxy server if one is required (http[s]://localhost[:8080])
   """
 
-  def __init__(self, sessionId=None, secure=True):
+  def __init__(self, sessionId=None, secure=True, proxy=None):
+    self.proxy = proxy
     self.secure = secure
     self.sessionId = sessionId
 
@@ -124,8 +126,13 @@ class SmugBase(object):
     c.setopt(c.USERAGENT, _userAgent)
     c.response = cStringIO.StringIO()
     c.setopt(c.WRITEFUNCTION, c.response.write)
-    # for SSL
-    c.setopt(c.SSL_VERIFYPEER, False)
+
+    if self.proxy:
+      c.setopt(c.PROXY, self.proxy)
+
+    if self.secure:
+      c.setopt(c.SSL_VERIFYPEER, False)
+
     return c
 
   def _handle_response(self, c):
@@ -202,7 +209,7 @@ class SmugBase(object):
   
   def batch(self):
     """Return an instance of a batch-oriented SmugMug client."""
-    return SmugBatch(self.sessionId, secure=self.secure)
+    return SmugBatch(self.sessionId, secure=self.secure, proxy=self.proxy)
   
   def images_upload(self, **kwargs):
     """Upload the corresponding image.
