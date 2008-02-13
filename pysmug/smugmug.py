@@ -257,7 +257,7 @@ class SmugBase(object):
       "FileName":FileName, "ImageID":ImageID, "AlbumID":AlbumID})
     c = self._new_connection(url, kwargs)
     c.setopt(c.UPLOAD, True)
-    c.setopt(c.HTTPHEADER, headers)
+    c.setopt(c.HTTPHEADER, [str(x) for x in headers])
     c.setopt(c.INFILESIZE, len(Data))
     c.setopt(c.READFUNCTION, image.read)
     
