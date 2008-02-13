@@ -18,12 +18,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-apikeys = {
-  "apikey":"APIKey",
-  "filename":"FileName",
-  "passwordhash":"PasswordHash",
-  "emailaddress":"EmailAddress",
-}
+apikeys = dict((x.lower(), x) for x in (
+  "APIKey", "AlbumKey", "ImageKey",
+  "FileName", "PasswordHash", "EmailAddress"
+))
 
 methods = set(
 ['smugmug.albums.applyWatermark',
