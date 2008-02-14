@@ -26,11 +26,7 @@ import urllib
 import logging
 import cStringIO
 from itertools import islice
-
-try:
-  from cjson import decode as _jsondecode
-except ImportError:
-  from simplejson import loads as _jsondecode
+from simplejson import loads as jsondecode
 
 from pysmug import __version__
 from pysmug.methods import methods as _methods, apikeys as _apikeys
@@ -142,10 +138,6 @@ class SmugBase(object):
     condition.  It additionally adds a C{Statistics} item to the response
     which contains upload & download times.
     
-    @attention: for some reason the response from smugmug incorrectly
-                encodes filepath separators so the response string is
-                corrected prior to the decoding
-
     @type c: PycURL C{Curl}
     @param c: a completed connection
     @return: a dictionary of results corresponding to the SmugMug response
@@ -155,11 +147,10 @@ class SmugBase(object):
     if not code == 200:
       raise HTTPException(c.errstr(), code)
 
-    # hack -- see @attention in method description
-    json = c.response.getvalue().replace("\/", "/")
+    json = c.response.getvalue()
 
     logging.debug(json)
-    resp = _jsondecode(json)
+    resp = jsondecode(json)
     if not resp["stat"] == "ok":
       raise SmugMugException(resp["message"], resp["code"])
     resp["Statistics"] = dict((key, c.getinfo(const)) for (key, const) in _curlinfo)
