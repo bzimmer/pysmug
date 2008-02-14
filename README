@@ -7,25 +7,28 @@ the pycurl library for connectivity.
 More information available at http://code.google.com/p/pysmug.
 
 Author:  Brian Zimmer <bzimmer@ziclix.com>
-Version: 0.2
-Date:    01/30/2008
+Version: 0.3
+Date:    02/13/2008
 
 Requirements
 ------------
 
 - Python 2.5+
 - PycURL + libcurl
-- one of python-cjson or simplejson
+- simplejson
 - A SmugMug API key (optional)
 
 Installation and examples
 -------------------------
 
-$ tar zxvf pysmug-0.2.tar.gz
-$ cd pysmug-0.2
+$ tar zxvf pysmug-0.3.tar.gz
+$ cd pysmug-0.3
 $ python setup.py install
 
 $ python examples/example_images_getInfo.py
+$ cd tests
+$ python test_all.py --email <email>
+password: <type password>
 
 License
 -------
@@ -36,4 +39,3 @@ Feedback
 --------
 
 Send patches, issues and comments to bzimmer@ziclix.com.
-

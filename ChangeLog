@@ -4,7 +4,7 @@ change details.
 pysmug ChangeLog
 ================
 
-Changes in v0.3 ():
+Changes in v0.3 (02-13-2008):
   * keyword arguments can have any case and pysmug
     will correctly format them to the SmugMug API
   * fixed bug in images_upload() where iterating
@@ -12,6 +12,13 @@ Changes in v0.3 ():
   * removed `protocol` ivar on SmugBase in favor of
     `secure`; `protocol` is now a property which returns
     "http" or "https" depending on the `secure` ivar
+  * added support for http proxy server
+  * added ability to instantiate user supplied class for
+    login()
+  * removed support for cjson since it did not properly
+    handle escaped '\'
+  * more documentation
+  * setup changes
 
 Changes in v0.2 (01-30-2008):
   * added categories_getTree()
