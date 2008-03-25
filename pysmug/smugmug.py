@@ -99,7 +99,8 @@ class SmugBase(object):
           del kwargs[key]
       if "SessionID" in kwargs and kwargs["SessionID"] is None:
         raise SmugMugException("not authenticated -- no valid session id")
-      query = urllib.urlencode(kwargs)
+      # if the value is None remove the keyword
+      query = urllib.urlencode(dict((k, v) for k, v in kwargs.items() if v is not None))
       url = "%s://api.smugmug.com/services/api/json/1.2.1/?%s" % (self.protocol, query)
       c = self._new_connection(url, kwargs)
       return self._perform(c)
@@ -385,7 +386,9 @@ class SmugBatch(SmugBase):
       self._batch = list()
 
   def _handle_response(self, c):
-    """Catch any exceptions and return a valid response.
+    """Catch any exceptions and return a valid response.  The default behaviour
+    is to raise the exception immediately but in a batch environment this is not
+    acceptable.
     
     @type c: PycURL C{Curl}
     @param c: a completed connection
