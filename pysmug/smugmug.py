@@ -19,12 +19,12 @@
 # SOFTWARE.
 
 import os
-import md5
 import pprint
 import pycurl
 import urllib
 import logging
 import cStringIO
+from hashlib import md5
 from itertools import islice
 from simplejson import loads as jsondecode
 
@@ -228,7 +228,7 @@ class SmugBase(object):
       Data = open(FileName, "rb").read()
 
     filename = os.path.split(FileName)[-1] if FileName else ""
-    fingerprint = md5.new(Data).hexdigest()
+    fingerprint = md5(Data).hexdigest()
     image = cStringIO.StringIO(Data)
     url = "%s://upload.smugmug.com/%s" % (self.protocol, filename)
 
