@@ -1,14 +1,9 @@
 
-from pysmug import SmugMug, SmugMugException
+from pysmug import login, SmugMug, SmugMugException
 
 class Example:
-  def __init__(self, APIKey, EmailAddress=None, Password=None):
-    self.m = SmugMug()
-    if EmailAddress and Password:
-      self.m.login_withPassword(APIKey=APIKey,
-        EmailAddress=EmailAddress, Password=Password)
-    else:
-      self.m.login_anonymously(APIKey=APIKey)
+  def __init__(self, conf=None, apiKey=None):
+    self.m = login(conf) if conf else SmugMug().login_anonymously(APIKey=apiKey)
 
   def example(self, *args, **kwargs):
     pass
@@ -17,12 +12,10 @@ def main(cls):
   import optparse, logging
   from getpass import getpass
   
-  apiKey = "1XhqbbxNfSygsmVReGQ8nek8D2Dz8F61"
-  
   p = optparse.OptionParser()
-  p.add_option("-a", "--apikey", default=apiKey, action="store")
-  p.add_option("-e", "--email", action="store")
-  p.add_option("-v", "--debug", action="store_true", default=False)
+  p.add_option("-f", "--conf", default=None, action="store")
+  p.add_option("-a", "--apikey", default=None, action="store")
+  p.add_option("-v", "--debug", default=False, action="store_true")
   opts, args = p.parse_args()
 
   if opts.debug:
@@ -31,8 +24,7 @@ def main(cls):
   if not args:
     args = [630992] # Street Photos from Moon River Photography
 
-  password = getpass() if opts.email else None
-  example = cls(opts.apikey, opts.email, password)
+  example = cls(opts.conf, opts.apikey)
   for arg in args:
     try:
       example.example(arg)
