@@ -24,6 +24,7 @@ import pycurl
 import urllib
 import logging
 import cStringIO
+import collections
 from hashlib import md5
 from itertools import islice
 from simplejson import loads as jsondecode
@@ -322,34 +323,88 @@ class SmugMug(SmugBase):
     mapping between name and id.
 
     I{This method is not a standard smugmug method.}
-    
+
     @todo: how can this be integrated with SmugBatch?
     """
     methods = {
       "smugmug.categories.get":"Categories",
       "smugmug.subcategories.getAll":"SubCategories"
     }
-    
+
     b = self.batch()
     b.categories_get()
     b.subcategories_getAll()
-    
+
     for params, results in b():
       method = results["method"]
       methods[method] = results[methods[method]]
-    
-    subtree = {}
+
+    subtree = collections.defaultdict(dict)
     for subcategory in methods["smugmug.subcategories.getAll"]:
       category = subcategory["Category"]["id"]
-      subtree.setdefault(category, dict())
       subtree[category][subcategory["Name"]] = subcategory["id"]
-    
+
     tree = {}
     for category in methods["smugmug.categories.get"]:
       categoryId = category["id"]
       tree[category["Name"]] = {"id":categoryId, "SubCategories":subtree.get(categoryId, {})}
 
-    return {"method":"pysmug.categories.getTree", "Categories":tree, "stat":"ok"}
+    return {u"method":u"pysmug.categories.getTree", u"Categories":tree, u"stat":u"ok"}
+
+  def albums_details(self, **kwargs):
+    """Returns the full details of an album including EXIF data for all images.
+
+    The format of the response tree::
+
+    {Album: {Attribute1: Value1,
+             Images: [{ImageAttribute1: ImageValue1,
+                       EXIF: {EXIFAttribute1: EXIFValue1,
+                              ...
+                              EXIFAttributeN: EXIFValueN}
+                       ...
+                       ImageAttributeN: ImageAttributeN}]
+             ...
+             AttributeN: ValueN}
+    'Statistics': {},
+    u'method': u'pysmug.albums.details',
+    u'stat': u'ok'}
+    
+    The primary purpose for this method is to provide easy access to a full
+    album worth of metadata quickly.
+
+    I{This method is not a standard smugmug method.}
+
+    @todo: how can this be integrated with SmugBatch?
+    """
+    kwargs = self._prepare_keywords(**kwargs)
+    albumId = kwargs.get("AlbumID")
+    album = self.albums_getInfo(albumID=albumId)
+    images = self.images_get(albumID=albumId)
+
+    # map
+    b = self.batch()
+    for imageId in (image["id"] for image in images["Images"]):
+      # add each image to the batch
+      b.images_getInfo(imageID=imageId, heavy=1)
+      b.images_getEXIF(imageID=imageId)
+
+    # combine
+    responses = collections.defaultdict(dict)
+    for (params, value) in b():
+      # marry the info and exif
+      imageId = params["ImageID"]
+      responses[imageId][params["method"]] = value
+
+    # reduce
+    album[u"Album"][u"Images"] = images = []
+    for value in responses.values():
+      img = value["smugmug.images.getInfo"]["Image"]
+      img[u"EXIF"] = value["smugmug.images.getEXIF"]["Image"]
+      images.append(img)
+
+    # return
+    album.update({u"method":u"pysmug.albums.details", u"stat":u"ok", u"Statistics":{}})
+    return album
 
 class SmugBatch(SmugBase):
   """Batching version of a SmugMug client.
