@@ -374,6 +374,9 @@ class SmugMug(SmugBase):
     I{This method is not a standard smugmug method.}
 
     @todo: how can this be integrated with SmugBatch?
+
+    @keyword albumId: the id of the album to query
+    @return: a dictionary of the album and image details
     """
     kwargs = self._prepare_keywords(**kwargs)
     albumId = kwargs.get("AlbumID")
