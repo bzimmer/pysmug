@@ -309,7 +309,8 @@ class SmugMug(SmugBase):
       set(["EmailAddress", "Password", "APIKey"]), **kwargs)
 
   def categories_getTree(self):
-    """Return a tree of categories and sub-categories.
+    """Return a tree of categories and sub-categories. The primary purpose for
+    this method is to provide an easy mapping between name and id.
 
     The format of the response tree::
 
@@ -318,9 +319,6 @@ class SmugMug(SmugBase):
                      'SubCategories': {'One': 4493,
                                        'Two': 4299}},
       }
-
-    The primary purpose for this method is to provide an easy
-    mapping between name and id.
 
     I{This method is not a standard smugmug method.}
 
@@ -352,25 +350,26 @@ class SmugMug(SmugBase):
     return {u"method":u"pysmug.categories.getTree", u"Categories":tree, u"stat":u"ok"}
 
   def albums_details(self, **kwargs):
-    """Returns the full details of an album including EXIF data for all images.
+    """Returns the full details of an album including EXIF data for all images.  It
+    is the composition of calls to C{albums_getInfo}, C{images_getInfo} and
+    C{images_getEXIF} where the C{images_*} calls are done in batch. The primary purpose
+    for this method is to provide easy access to a full album worth of metadata quickly.
 
     The format of the response tree::
 
-    {Album: {Attribute1: Value1,
-             Images: [{ImageAttribute1: ImageValue1,
-                       EXIF: {EXIFAttribute1: EXIFValue1,
-                              ...
-                              EXIFAttributeN: EXIFValueN}
-                       ...
-                       ImageAttributeN: ImageAttributeN}]
-             ...
-             AttributeN: ValueN}
-    'Statistics': {},
-    u'method': u'pysmug.albums.details',
-    u'stat': u'ok'}
-    
-    The primary purpose for this method is to provide easy access to a full
-    album worth of metadata quickly.
+      {'Album': {'Attribute1': 'Value1',
+                 'AttributeN': 'ValueN',
+                 'Images': [{'EXIF': {'EXIFAttribute1': 'EXIFValue1',
+                                      'EXIFAttributeN': 'EXIFValueN'},
+                             'ImageAttribute1': 'ImageValue1',
+                             'ImageAttributeN': 'ImageAttributeN'},
+                            {'EXIF': {'EXIFAttribute1': 'EXIFValue1',
+                                      'EXIFAttributeN': 'EXIFValueN'},
+                             'ImageAttribute1': 'ImageValue1',
+                             'ImageAttributeN': 'ImageAttributeN'}]},
+       'Statistics': {},
+       'method': 'pysmug.albums.details',
+       'stat': 'ok'}
 
     I{This method is not a standard smugmug method.}
 
