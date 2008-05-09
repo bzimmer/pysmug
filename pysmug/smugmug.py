@@ -46,7 +46,7 @@ class SmugMugException(Exception):
   def __init__(self, message, code=0):
     super(SmugMugException, self).__init__(message)
     self.code = code
-  
+
   def __str__(self):
     return "%s (code=%d)" % (super(SmugMugException, self).__str__(), self.code)
   __repr__ = __str__
@@ -102,7 +102,7 @@ class SmugBase(object):
         raise SmugMugException("not authenticated -- no valid session id")
       # if the value is None remove the keyword
       query = urllib.urlencode(dict((k, v) for k, v in kwargs.items() if v is not None))
-      url = "%s://api.smugmug.com/services/api/json/1.2.1/?%s" % (self.protocol, query)
+      url = "%s://api.smugmug.com/services/api/json/1.2.2/?%s" % (self.protocol, query)
       c = self._new_connection(url, kwargs)
       return self._perform(c)
     
@@ -190,8 +190,9 @@ class SmugBase(object):
         continue
       lk = k.lower()
       if lk in _apikeys:
+        key, func = _apikeys[lk]
         del kwargs[k]
-        kwargs[_apikeys[lk]] = v
+        kwargs[key] = func(v) if func else v
       else:
         del kwargs[k]
         if lk.endswith("id"):
@@ -199,11 +200,11 @@ class SmugBase(object):
         else:
           kwargs[lk.title()] = v
     return kwargs
-  
+
   def batch(self):
     """Return an instance of a batch-oriented SmugMug client."""
     return SmugBatch(self.sessionId, secure=self.secure, proxy=self.proxy)
-  
+
   def images_upload(self, **kwargs):
     """Upload the corresponding image.
 
@@ -236,7 +237,7 @@ class SmugBase(object):
     headers = [
       "Host: upload.smugmug.com",
       "Content-MD5: " + fingerprint,
-      "X-Smug-Version: 1.2.1",
+      "X-Smug-Version: 1.2.2",
       "X-Smug-ResponseType: JSON",
       "X-Smug-AlbumID: " + str(AlbumID) if AlbumID else "X-Smug-ImageID: " + str(ImageID),
       "X-Smug-FileName: " + filename,
@@ -258,7 +259,7 @@ class SmugBase(object):
 
 class SmugMug(SmugBase):
   """Serial version of a SmugMug client."""
-  
+
   def _perform(self, c):
     """Perform the low-level communication with SmugMug."""
     try:
@@ -280,7 +281,7 @@ class SmugMug(SmugBase):
 
   def login_anonymously(self, **kwargs):
     """Login into SmugMug anonymously using the API key.
-    
+
     @keyword APIKey: a SmugMug api key
     @return: the SmugMug instance with a session established
     """
@@ -376,29 +377,30 @@ class SmugMug(SmugBase):
     @todo: how can this be integrated with SmugBatch?
 
     @keyword albumId: the id of the album to query
+    @keyword albumKey: the key of the album to query
     @keyword exif: returns EXIF metadata about each image
     @return: a dictionary of the album and image details
     """
     kwargs = self._prepare_keywords(**kwargs)
     albumId = kwargs.get("AlbumID")
-    exif = bool(kwargs.get("Exif"))
-    album = self.albums_getInfo(albumID=albumId)
-    images = self.images_get(albumID=albumId)
+    albumKey = kwargs.get("AlbumKey")
+    exif = kwargs.get("Exif")
+    album = self.albums_getInfo(albumId=albumId, albumKey=albumKey)
+    images = self.images_get(albumId=albumId, albumKey=albumKey)
 
     # map
     b = self.batch()
-    for imageId in (image["id"] for image in images["Images"]):
+    for imageId, imageKey in ((image["id"], image["Key"]) for image in images["Images"]):
       # add each image to the batch
-      b.images_getInfo(imageID=imageId)
+      b.images_getInfo(imageID=imageId, imageKey=imageKey)
       if exif:
-        b.images_getEXIF(imageID=imageId)
+        b.images_getEXIF(imageID=imageId, imageKey=imageKey)
 
     # combine
     responses = collections.defaultdict(dict)
     for (params, value) in b():
-      # marry the info and exif
-      imageId = params["ImageID"]
-      responses[imageId][params["method"]] = value
+      imageIdKey = (params["ImageID"], params["ImageKey"])
+      responses[imageIdKey][params["method"]] = value
 
     # reduce
     album[u"Album"][u"Images"] = images = []
@@ -533,7 +535,7 @@ class SmugBatch(SmugBase):
     Format = kwargs.get("Format", "Original")
 
     path = os.path.abspath(os.getcwd() if not Path else Path)
-    
+
     self.images_get(AlbumID=AlbumID)
     album = list(self())[0][1]
 

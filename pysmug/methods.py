@@ -18,10 +18,25 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-apikeys = dict((x.lower(), x) for x in (
-  "APIKey", "AlbumKey", "ImageKey",
-  "FileName", "PasswordHash", "EmailAddress"
+"""This module provides some lower-level metadata used to communicate with the
+SmugMug API.
+"""
+
+apikeys = dict((x.lower(), (x, f)) for x, f in (
+  ("APIKey", None),
+  ("AlbumKey",None),
+  ("EmailAddress",None),
+  ("FileName",None),
+  ("Heavy", int),
+  ("ImageKey",None),
+  ("PasswordHash",None),
+  ("Pretty", int),
+  ("Strict", int),
 ))
+"""A mapping between lower-cased names and their SmugMug API case and formatting
+function.  This is a one-way mapping usually used to format a Python C{bool}
+into its numeric value usable by the SmugMug API.
+"""
 
 methods = set(
 ['smugmug.albums.applyWatermark',
@@ -104,4 +119,6 @@ methods = set(
  'smugmug.watermarks.get',
  'smugmug.watermarks.getInfo'
 ])
+"""Valid methods for the SmugMug (+ extended) API.
+"""
 
