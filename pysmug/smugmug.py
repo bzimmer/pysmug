@@ -376,10 +376,12 @@ class SmugMug(SmugBase):
     @todo: how can this be integrated with SmugBatch?
 
     @keyword albumId: the id of the album to query
+    @keyword exif: returns EXIF metadata about each image
     @return: a dictionary of the album and image details
     """
     kwargs = self._prepare_keywords(**kwargs)
     albumId = kwargs.get("AlbumID")
+    exif = bool(kwargs.get("Exif"))
     album = self.albums_getInfo(albumID=albumId)
     images = self.images_get(albumID=albumId)
 
@@ -387,8 +389,9 @@ class SmugMug(SmugBase):
     b = self.batch()
     for imageId in (image["id"] for image in images["Images"]):
       # add each image to the batch
-      b.images_getInfo(imageID=imageId, heavy=1)
-      b.images_getEXIF(imageID=imageId)
+      b.images_getInfo(imageID=imageId)
+      if exif:
+        b.images_getEXIF(imageID=imageId)
 
     # combine
     responses = collections.defaultdict(dict)
@@ -401,7 +404,8 @@ class SmugMug(SmugBase):
     album[u"Album"][u"Images"] = images = []
     for value in responses.values():
       img = value["smugmug.images.getInfo"]["Image"]
-      img[u"EXIF"] = value["smugmug.images.getEXIF"]["Image"]
+      if exif:
+        img[u"EXIF"] = value["smugmug.images.getEXIF"]["Image"]
       images.append(img)
 
     # return
@@ -530,7 +534,7 @@ class SmugBatch(SmugBase):
 
     path = os.path.abspath(os.getcwd() if not Path else Path)
     
-    self.images_get(AlbumID=AlbumID, Heavy=1)
+    self.images_get(AlbumID=AlbumID)
     album = list(self())[0][1]
 
     path = os.path.join(path, str(AlbumID))
