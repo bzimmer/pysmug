@@ -32,6 +32,7 @@ from simplejson import loads as jsondecode
 from pysmug import __version__
 from pysmug.methods import methods as _methods, apikeys as _apikeys
 
+_apiVersion = "1.2.2"
 _userAgent = "pysmug(%s)" % (__version__)
 
 _curlinfo = (
@@ -60,13 +61,25 @@ class SmugBase(object):
   
   @type secure: bool
   @ivar secure: whether to use a secure http connection
+  @type sessionId: string
   @ivar sessionId: session id from smugmug.
+  @type proxy: url
   @ivar proxy: address of proxy server if one is required (http[s]://localhost[:8080])
+  @type version: string
+  @ivar version: which version of the SmugMug API to use
+  @type verbose: function
+  @ivar verbose: a function callback which takes two arguments: C{infotype} and C{message}.
+  @type progress: function
+  @ivar progress: a function callback which takes four arguments: C{download_total}, C{download_done},
+                  C{upload_total} and C{upload_done}.
   """
 
-  def __init__(self, sessionId=None, secure=True, proxy=None):
+  def __init__(self, sessionId=None, secure=True, proxy=None, version=_apiVersion, verbose=None, progress=None):
     self.proxy = proxy
     self.secure = secure
+    self.verbose = verbose
+    self.version = version
+    self.progress = progress
     self.sessionId = sessionId
 
   def __getattr__(self, method):
@@ -102,7 +115,7 @@ class SmugBase(object):
         raise SmugMugException("not authenticated -- no valid session id")
       # if the value is None remove the keyword
       query = urllib.urlencode(dict((k, v) for k, v in kwargs.items() if v is not None))
-      url = "%s://api.smugmug.com/services/api/json/1.2.2/?%s" % (self.protocol, query)
+      url = "%s://api.smugmug.com/services/api/json/%s/?%s" % (self.protocol, self.version, query)
       c = self._new_connection(url, kwargs)
       return self._perform(c)
     
@@ -113,17 +126,28 @@ class SmugBase(object):
 
     Create a new connection setting up the query string,
     user agent header, response buffer and ssl parameters.
-
+    
+    This method also sets the appropriate PycURL options for C{verbose},
+    C{progress}, C{proxy} and C{secure} instance variables.
+    
     @param url: complete query string with parameters already encoded
     @param args: arguments passed to method to be used for later callbacks
     """
     c = pycurl.Curl()
     c.args = args
     c.setopt(c.URL, url)
-    logging.debug(url)
     c.setopt(c.USERAGENT, _userAgent)
     c.response = cStringIO.StringIO()
     c.setopt(c.WRITEFUNCTION, c.response.write)
+    
+    if self.verbose:
+      c.setopt(pycurl.VERBOSE, True)
+      c.setopt(pycurl.DEBUGFUNCTION, self.verbose)
+    logging.debug(url)
+    
+    if self.progress:
+      c.setopt(c.NOPROGRESS, False)
+      c.setopt(c.PROGRESSFUNCTION, self.progress)
 
     if self.proxy:
       c.setopt(c.PROXY, self.proxy)
@@ -150,8 +174,8 @@ class SmugBase(object):
       raise HTTPException(c.errstr(), code)
 
     json = c.response.getvalue()
-
     logging.debug(json)
+
     resp = jsondecode(json)
     if not resp["stat"] == "ok":
       raise SmugMugException(resp["message"], resp["code"])
@@ -171,12 +195,12 @@ class SmugBase(object):
   def _prepare_keywords(self, **kwargs):
     """Prepare the keywords for sending to SmugMug.
 
-    The following steps are followed::
-      1. If the key is C{method}, continue.
+    The following operations are performed::
+      1. If the key is "method", continue.
       2. If the key starts with an upper case letter, continue.
-      3. If the key is in C{methods.apikeys}, replace the key.
-      4. If the key ends with C{id}, upper case the first letter
-         and C{ID} and replace the key.
+      3. If the key is in {methods.apikeys}, replace the key.
+      4. If the key ends with {id}, upper case the first letter
+         and {ID} and replace the key.
       5. Else, upper case the first letter only and replace the
          key.
 
@@ -203,7 +227,8 @@ class SmugBase(object):
 
   def batch(self):
     """Return an instance of a batch-oriented SmugMug client."""
-    return SmugBatch(self.sessionId, secure=self.secure, proxy=self.proxy)
+    return SmugBatch(self.sessionId, secure=self.secure, proxy=self.proxy,
+      version=self.version, verbose=self.verbose, progress=self.progress)
 
   def images_upload(self, **kwargs):
     """Upload the corresponding image.
@@ -237,7 +262,7 @@ class SmugBase(object):
     headers = [
       "Host: upload.smugmug.com",
       "Content-MD5: " + fingerprint,
-      "X-Smug-Version: 1.2.2",
+      "X-Smug-Version: " + self.version,
       "X-Smug-ResponseType: JSON",
       "X-Smug-AlbumID: " + str(AlbumID) if AlbumID else "X-Smug-ImageID: " + str(ImageID),
       "X-Smug-FileName: " + filename,
