@@ -28,8 +28,8 @@ from hashlib import md5
 from itertools import islice
 from simplejson import loads as jsondecode
 
-from pysmug import __version__
-from pysmug.methods import methods as _methods, apikeys as _apikeys
+from pysmug import __version__, smugmug_keywords
+from pysmug.methods import methods as _methods
 
 _concurrent = 10
 _apiVersion = "1.2.2"
@@ -99,11 +99,11 @@ class SmugBase(object):
     if method not in _methods:
       raise SmugMugException("no such smugmug method '%s'" % (method))
 
+    @smugmug_keywords
     def smugmug(*args, **kwargs):
       """Dynamically created SmugMug function call."""
       if args:
         raise SmugMugException("smugmug methods take no arguments, only named parameters")
-      kwargs = self._prepare_keywords(**kwargs)
       defaults = {"method": method, "SessionID":self.sessionId}
       for key, value in defaults.iteritems():
         if key not in kwargs:
@@ -192,44 +192,12 @@ class SmugBase(object):
     """
     pass
 
-  def _prepare_keywords(self, **kwargs):
-    """Prepare the keywords for sending to SmugMug.
-
-    The following operations are performed::
-      1. If the key is "method", continue.
-      2. If the key starts with an upper case letter, continue.
-      3. If the key is in {methods.apikeys}, replace the key.
-      4. If the key ends with {id}, upper case the first letter
-         and {ID} and replace the key.
-      5. Else, upper case the first letter only and replace the
-         key.
-
-    @param kwargs: the keywords to send to SmugMug
-    """
-    items = kwargs.items()
-    for k, v, in items:
-      if k == "method":
-        continue
-      if k[0].isupper():
-        continue
-      lk = k.lower()
-      if lk in _apikeys:
-        key, func = _apikeys[lk]
-        del kwargs[k]
-        kwargs[key] = func(v) if func else v
-      else:
-        del kwargs[k]
-        if lk.endswith("id"):
-          kwargs[lk[:-2].title() + "ID"] = v
-        else:
-          kwargs[lk.title()] = v
-    return kwargs
-
   def batch(self):
     """Return an instance of a batch-oriented SmugMug client."""
     return SmugBatch(self.sessionId, secure=self.secure, proxy=self.proxy,
       version=self.version, verbose=self.verbose, progress=self.progress)
 
+  @smugmug_keywords
   def images_upload(self, **kwargs):
     """Upload the corresponding image.
 
@@ -240,7 +208,6 @@ class SmugBase(object):
     @keyword albumId: the name of the album in which to add the photo
     @keyword filename: the name of the file
     """
-    kwargs = self._prepare_keywords(**kwargs)
     AlbumID = kwargs.pop("AlbumID", None)
     ImageID = kwargs.pop("ImageID", None)
     Data = kwargs.pop("Data", None)
@@ -293,12 +260,8 @@ class SmugMug(SmugBase):
     finally:
       c.close()
 
+  @smugmug_keywords
   def _login(self, handler, keywords, **kwargs):
-    kwargs = self._prepare_keywords(**kwargs)
-
-    # check for the required keywords
-    #keys = set(kwargs.keys())
-
     login = self._make_handler(handler)
     session = login(SessionID=None, **kwargs)
     self.sessionId = session['Login']['Session']['id']
@@ -440,6 +403,7 @@ class SmugBatch(SmugBase):
         batch.pop().close()
       except: pass
 
+  @smugmug_keywords
   def images_download(self, **kwargs):
     """Download the entire contents of an album to the specified path.
     
@@ -450,7 +414,6 @@ class SmugBatch(SmugBase):
     @keyword format: the size of the image (check smugmug for possible sizes)
     @return: a generator of responses containing the filenames saved locally
     """
-    kwargs = self._prepare_keywords(**kwargs)
     AlbumID = kwargs.get("AlbumID", None)
     Path = kwargs.get("Path", None)
     Format = kwargs.get("Format", "Original")

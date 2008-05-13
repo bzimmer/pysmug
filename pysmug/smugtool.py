@@ -59,6 +59,7 @@ class SmugTool(pysmug.SmugMug):
 
     return {u"method":u"pysmug.categories.getTree", u"Categories":categories, u"stat":u"ok"}
 
+  @pysmug.smugmug_keywords
   def albums_details(self, **kwargs):
     """Returns the full details of an album including EXIF data for all images.  It
     is the composition of calls to C{albums_getInfo}, C{images_getInfo} and
@@ -86,7 +87,6 @@ class SmugTool(pysmug.SmugMug):
     @keyword exif: returns EXIF metadata about each image
     @return: a dictionary of the album and image details
     """
-    kwargs = self._prepare_keywords(**kwargs)
     albumId = kwargs.get("AlbumID")
     albumKey = kwargs.get("AlbumKey")
     exif = kwargs.get("Exif")
