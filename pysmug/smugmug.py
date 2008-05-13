@@ -32,6 +32,7 @@ from simplejson import loads as jsondecode
 from pysmug import __version__
 from pysmug.methods import methods as _methods, apikeys as _apikeys
 
+_concurrent = 10
 _apiVersion = "1.2.2"
 _userAgent = "pysmug(%s)" % (__version__)
 
@@ -449,9 +450,10 @@ class SmugBatch(SmugBase):
   """
 
   def __init__(self, *args, **kwargs):
+    concurrent = kwargs.pop("concurrent", _concurrent)
     super(SmugBatch, self).__init__(*args, **kwargs)
     self._batch = list()
-    self.concurrent = kwargs.get("concurrent", 10)
+    self.concurrent = concurrent
   
   def _perform(self, c):
     """Store the request for later processing."""
