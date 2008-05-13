@@ -31,6 +31,7 @@
 __version__ = "0.4"
 
 from pysmug.smugmug import SmugMug, SmugBatch, SmugMugException, HTTPException
+from pysmug.smugtool import SmugTool
 
 def login(conf=None, klass=SmugMug, proxy=None):
   """Login to smugmug using the contents of the configuration file.
