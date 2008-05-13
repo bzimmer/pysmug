@@ -72,22 +72,30 @@ def smugmug_keywords(fn):
 from pysmug.smugmug import SmugMug, SmugBatch, SmugMugException, HTTPException
 from pysmug.smugtool import SmugTool
 
-def login(conf=None, klass=SmugMug, proxy=None):
+def login(conf=None, klass=None, proxy=None):
   """Login to smugmug using the contents of the configuration file.
 
-  If no configuration file specified then a file named C{.pysmugrc} in
+  If no configuration file is specified then a file named C{.pysmugrc} in
   the user's home directory is used if it exists.
+  
+  The format is a standard configuration parseable by C{ConfigParser}.  The main
+  section C{pysmug} is required.  The key C{login} references which section to use
+  for authentication with SmugMug.  The key C{smugmug} is optional and can specify
+  an alternate C{SmugMug} class to instantiate.  This is an example file::
 
-  The following order determines the C{login} method used:
+    [pysmug]
+    login=login_withHash
+    smugmug=pysmug.SmugTool
 
-    - B{In all cases C{APIKey} is required.}
+    [login_withHash]
+    APIKey = <my api key>
+    userId = <my user id>
+    passwordHash = <my password hash>
 
-    1. If C{PasswordHash} is in configuration, then C{login_withHash} is used.
-      - C{UserID} is additionally required.
-    2. If C{Password} is in configuration, then C{login_withPassword} is used.
-      - C{EmailAddress} is additionally required.
-    3. Else C{login_anonymously} is used.
+    [login_anonymously]
+    APIKey = <my api key>
 
+  @type conf: string
   @param conf: path to a configuration file
   @type klass: C{SmugMug} class
   @param klass: class to instantiate
@@ -95,6 +103,8 @@ def login(conf=None, klass=SmugMug, proxy=None):
   @raise ValueError: if no configuration file is found
   """
   import os
+  from ConfigParser import ConfigParser
+
   if not conf:
     home = os.environ.get("HOME", None)
     if not home:
@@ -102,11 +112,22 @@ def login(conf=None, klass=SmugMug, proxy=None):
     conf = os.path.join(home, ".pysmugrc")
     if not os.path.exists(conf):
       raise ValueError("'%s' not found" % (conf))
-  config = eval(open(conf).read())
+
+  config = ConfigParser()
+  config.optionxform = str
+  config.read(conf)
+
+  if not klass:
+    if config.has_option("pysmug", "smugmug"):
+      path = config.get("pysmug", "smugmug")
+      i = path.rfind(".")
+      module, attr = path[:i], path[i+1:]
+      mod = __import__(module, globals(), locals(), [attr])
+      klass = getattr(mod, attr)
+    else:
+      klass = SmugMug
   m = klass(proxy=proxy)
-  keys = set(x.lower() for x in config.keys())
-  if "passwordhash" in keys:
-    return m.login_withHash(**config)
-  elif "password" in keys:
-    return m.login_withPassword(**config)
-  return m.login_anonymously(**config)
+
+  auth = config.get("pysmug", "login")
+  keys = dict(config.items(auth))
+  return getattr(m, auth)(**keys)
