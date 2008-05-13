@@ -76,7 +76,7 @@ setup(
   author_email = "bzimmer@ziclix.com",
   url = "http://code.google.com/p/%s" % (PACKAGE),
   download_url = "http://pypi.python.org/pypi/%s/%s" % (PACKAGE, VERSION),
-  packages = [PACKAGE],
+  packages = [PACKAGE, PACKAGE + ".tests"],
   scripts = scripts(),
   data_files = datafiles(),
   platforms = ['any'],
