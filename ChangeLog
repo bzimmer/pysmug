@@ -13,6 +13,7 @@ Changes in v0.4 (05-13-2008):
   * added albums_details which returns detailed information about an
     album and all containing images (include EXIF if requested)
   * added verbose and progress callbacks to assist in debugging
+  * added smugmug_keywords decorator to correctly format method arguments
   * do not send any keywords to SmugMug with a value of None
   * updated to use hashlib for md5
   * removed examples
