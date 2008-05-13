@@ -44,7 +44,7 @@ def smugmug_keywords(fn):
     5. Else, upper case the first letter only and replace the
        key.
 
-  @param kwargs: the keywords to send to SmugMug
+  @param fn: the decorated function
   """
   def mg(*args, **kwargs):
     items = kwargs.items()
