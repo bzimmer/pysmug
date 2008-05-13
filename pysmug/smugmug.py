@@ -336,45 +336,44 @@ class SmugMug(SmugBase):
       set(["EmailAddress", "Password", "APIKey"]), **kwargs)
 
   def categories_getTree(self):
-    """Return a tree of categories and sub-categories. The primary purpose for
-    this method is to provide an easy mapping between name and id.
+    """Return the tree of categories and sub-categories.
 
     The format of the response tree::
 
-      {'Category1': {'id': 41, 'SubCategories': {}},
-       'Category2': {'id':  3,
-                     'SubCategories': {'One': 4493,
-                                       'Two': 4299}},
-      }
+      {u'Categories': [{u'Name': u'Other', 'SubCategories': {}, u'id': 0},
+                       {u'Name': u'Airplanes', 'SubCategories': {}, u'id': 41},
+                       {u'Name': u'Animals', 'SubCategories': {}, u'id': 1},
+                       {u'Name': u'Aquariums', 'SubCategories': {}, u'id': 25},
+                       {u'Name': u'Architecture', 'SubCategories': {}, u'id': 2},
+                       {u'Name': u'Art', 'SubCategories': {}, u'id': 3},
+                       {u'Name': u'Arts and Crafts', 'SubCategories': {}, u'id': 43},
+                       ...,
+                       ],
+       u'method': u'pysmug.categories.getTree',
+       u'stat': u'ok'}
 
     I{This method is not a standard smugmug method.}
 
     @todo: how can this be integrated with SmugBatch?
     """
-    methods = {
-      "smugmug.categories.get":"Categories",
-      "smugmug.subcategories.getAll":"SubCategories"
-    }
-
     b = self.batch()
     b.categories_get()
     b.subcategories_getAll()
 
+    methods = dict()
     for params, results in b():
-      method = results["method"]
-      methods[method] = results[methods[method]]
+      methods[params["method"]] = results
 
-    subtree = collections.defaultdict(dict)
-    for subcategory in methods["smugmug.subcategories.getAll"]:
-      category = subcategory["Category"]["id"]
-      subtree[category][subcategory["Name"]] = subcategory["id"]
+    subcategories = collections.defaultdict(list)
+    for subcategory in methods["smugmug.subcategories.getAll"]["SubCategories"]:
+      category = subcategory.pop("Category")
+      subcategories[category["id"]].append(subcategory)
 
-    tree = {}
-    for category in methods["smugmug.categories.get"]:
-      categoryId = category["id"]
-      tree[category["Name"]] = {"id":categoryId, "SubCategories":subtree.get(categoryId, {})}
+    categories = methods["smugmug.categories.get"]["Categories"]
+    for category in categories:
+      category["SubCategories"] = subcategories.get(category["id"], {})
 
-    return {u"method":u"pysmug.categories.getTree", u"Categories":tree, u"stat":u"ok"}
+    return {u"method":u"pysmug.categories.getTree", u"Categories":categories, u"stat":u"ok"}
 
   def albums_details(self, **kwargs):
     """Returns the full details of an album including EXIF data for all images.  It
