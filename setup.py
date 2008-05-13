@@ -32,6 +32,20 @@ class epydoc(Command):
     if not stat == 0:
       raise DistutilsExecError("failed to run epydoc")
 
+class nosetests(Command):
+  description = "Runs the tests."
+  user_options = []
+
+  def initialize_options(self):
+    pass
+
+  def finalize_options(self):
+    pass
+
+  def run(self):
+    from nose.core import TestProgram
+    TestProgram(argv=[PACKAGE]).runTests()
+
 class sdist(_sdist):
   def run(self):
     self.run_command("epydoc")
@@ -43,7 +57,7 @@ def datafiles():
   def _datafiles():
     root = os.path.join("share", "doc", PACKAGE + "-" + VERSION)
     yield (root, [x for x in ("ChangeLog", "LICENSE", "README") if os.path.exists(x)])
-    for dn, pattern in (("doc/html", "*"), ("examples", "*.py"), ("tests", "*.py")):
+    for dn, pattern in (("doc/html", "*"), ("examples", "*.py")):
       files = glob.glob(os.path.join(dn, pattern))
       if files:
         yield (os.path.join(root, dn), files)
@@ -75,6 +89,6 @@ setup(
     'Programming Language :: Python',
     'Topic :: Software Development :: Libraries :: Python Modules',
   ],
-  cmdclass = {"epydoc":epydoc, "sdist":sdist},
+  cmdclass = {"epydoc":epydoc, "sdist":sdist, "nosetests":nosetests},
 )
 

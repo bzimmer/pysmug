@@ -4,3 +4,4 @@ include LICENSE
 include ChangeLog
 include examples/*.py
 include doc/html/*
+include pysmug/tests/*.jpg
