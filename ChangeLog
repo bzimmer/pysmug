@@ -4,15 +4,18 @@ change details.
 pysmug ChangeLog
 ================
 
-Changes in v0.4 (xx-xx-2008):
+Changes in v0.4 (05-13-2008):
   * fully tested with the 1.2.2 API changes
+  * integrated nose tests
+  * configuration for login() now uses ConfigParser rather than eval
+    (backwards incompatible changes to the config file)
   * added the ability to choose the API version to use (defaults to 1.2.2)
   * added albums_details which returns detailed information about an
     album and all containing images (include EXIF if requested)
   * added verbose and progress callbacks to assist in debugging
   * do not send any keywords to SmugMug with a value of None
   * updated to use hashlib for md5
-  * examples now either use anonymous logins or require a conf file
+  * removed examples
   * added and fixed documentation
 
 Changes in v0.3 (02-13-2008):
