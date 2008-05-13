@@ -8,7 +8,7 @@ More information available at http://code.google.com/p/pysmug.
 
 Author:  Brian Zimmer <bzimmer@ziclix.com>
 Version: 0.4
-Date:    xx/xx/2008
+Date:    05/13/2008
 
 Requirements
 ------------
@@ -16,6 +16,7 @@ Requirements
 - Python 2.5+
 - PycURL + libcurl
 - simplejson
+- nose (optional: required for running tests)
 - A SmugMug API key (optional; required for non-anonymous access)
 
 Installation and examples
@@ -24,6 +25,8 @@ Installation and examples
 $ tar zxvf pysmug-0.4.tar.gz
 $ cd pysmug-0.4
 $ python setup.py install
+$ <create a configuration file>
+$ python setup.py nosetests
 
 License
 -------
