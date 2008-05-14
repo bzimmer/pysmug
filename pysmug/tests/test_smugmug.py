@@ -69,6 +69,7 @@ def test_query_of_empty_album():
   _support.m.images_get(albumid=album["id"], albumKey=album["Key"])
   _support.m.images_get(albumid=album["id"], albumKey=album["Key"], strict=0)
   _support.m.images_get(albumid=album["id"], albumKey=album["Key"], strict=False)
+  _support.m.images_get(albumid=album["id"], albumKey=album["Key"], strict="false")
 
   _support.delete_album(album)
 

@@ -22,16 +22,29 @@
 SmugMug API.
 """
 
+def _smugbool(value):
+  """Formats the value into an appropriate boolean representation for SmugMug.
+  The SmugMug API will accept boolean values as either C{true|false} or C{1|0} so
+  this function accepts both strings and boolean/integer Python values and returns
+  the appropriate representation for the API.  There is no corresponding mapping
+  for inbound data.
+  """
+  if value is None:
+    return value
+  if isinstance(value, str):
+    return value.lower()
+  return int(value)
+
 apikeys = dict((x.lower(), (x, f)) for x, f in (
   ("APIKey", None),
-  ("AlbumKey",None),
-  ("EmailAddress",None),
-  ("FileName",None),
-  ("Heavy", int),
-  ("ImageKey",None),
-  ("PasswordHash",None),
-  ("Pretty", int),
-  ("Strict", int),
+  ("AlbumKey", None),
+  ("EmailAddress", None),
+  ("FileName", None),
+  ("Heavy", _smugbool),
+  ("ImageKey", None),
+  ("PasswordHash", None),
+  ("Pretty", _smugbool),
+  ("Strict", _smugbool),
 ))
 """A mapping between lower-cased names and their SmugMug API case and formatting
 function.  This is a one-way mapping usually used to format a Python C{bool}
