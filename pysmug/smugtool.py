@@ -18,8 +18,26 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import re
 import pysmug
+import logging
 import collections
+
+_c = re.compile('"(.*?)"')
+def _kwsplit(word):
+  """
+  Some keyword samples::
+
+    a; b;
+    "abc" "def"
+    a
+  """
+  x = _c.findall(word)
+  if x:
+    # space-separated quoted strings
+    return x
+  # semi-colon separated strings (will always create a list)
+  return [z.strip() for z in word.split(";") if z]
 
 class SmugTool(pysmug.SmugMug):
 
@@ -155,3 +173,26 @@ class SmugTool(pysmug.SmugMug):
           s["Type"] = "SubCategory"
           yield s
 
+  def tagcloud(self, kwfunc=None):
+    """
+    Compute the occurrence count for all keywords for all images in all albums.
+    
+    @keyword kwfunc: function taking a single string and returning a list keywords
+    @return: a tuple of (number of albums, number of images, {keyword: occurences})
+    """
+    b = self.batch()
+    albums = self.albums_get()["Albums"]
+    for album in albums:
+      b.images_get(AlbumID=album["id"], AlbumKey=album["Key"], Heavy=True)
+
+    images = 0
+    kwfunc = kwfunc or _kwsplit
+    cloud = collections.defaultdict(lambda: 0)
+    for params, response in b():
+      album = response["Album"]
+      images += album["ImageCount"]
+      for m in (x for x in (y["Keywords"].strip() for y in album["Images"]) if x):
+        for k in kwfunc(m):
+          cloud[k] = cloud[k] + 1
+
+    return (len(albums), images, cloud)

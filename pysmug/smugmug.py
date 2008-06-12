@@ -118,7 +118,7 @@ class SmugBase(object):
       url = "%s://api.smugmug.com/services/api/json/%s/?%s" % (self.protocol, self.version, query)
       c = self._new_connection(url, kwargs)
       return self._perform(c)
-    
+
     return smugmug
 
   def _new_connection(self, url, args):

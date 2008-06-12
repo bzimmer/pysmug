@@ -28,7 +28,7 @@
    - U{SmugMug API <http://www.smugmug.com>}
 """
 
-__version__ = "0.4"
+__version__ = "0.5"
 
 from pysmug.methods import apikeys
 
