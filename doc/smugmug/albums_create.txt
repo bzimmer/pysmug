@@ -1,0 +1,64 @@
+{
+  "Version": "1.2.0+", 
+  "MethodName": "smugmug.albums.create", 
+  "Description": "Creates a new album with the specified parameters.", 
+  "Arguments": {
+    "Required": {
+      "SessionID": {
+        "Type": "string", 
+        "Description": ""
+      }, 
+      "Title": {
+        "Type": "string", 
+        "Description": ""
+      }
+    }, 
+    "Optional": {
+      "Type": "boolean", 
+      "Description": ""
+    }, 
+    "Additional": {
+      "Header": {
+        "Account": [
+          "power", 
+          "pro"
+        ], 
+        "Type": "boolean", 
+        "Description": ""
+      }, 
+      "EXIF": {
+        "Type": "boolean", 
+        "Description": ""
+      }, 
+      "Backprinting": {
+        "Account": [
+          "pro"
+        ], 
+        "Type": "string", 
+        "Description": ""
+      }, 
+      "ProofDays": {
+        "Account": [
+          "pro"
+        ], 
+        "Type": "integer", 
+        "Description": ""
+      }
+    }
+  },
+  "Response": {
+    "Album": {
+      "Type": "struct", 
+      "Properties": [
+        {
+          "Property": "id", 
+          "Type": "integer"
+        }, 
+        {
+          "Property": "Key", 
+          "Type": "string"
+        }
+      ]
+    }
+  }
+}
