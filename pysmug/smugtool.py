@@ -24,7 +24,7 @@ import logging
 import collections
 
 _c = re.compile('"(.*?)"')
-def _kwsplit(word):
+def kwsplit(word):
   """
   Some keyword samples::
 
@@ -177,7 +177,7 @@ class SmugTool(pysmug.SmugMug):
     """
     Compute the occurrence count for all keywords for all images in all albums.
     
-    @keyword kwfunc: function taking a single string and returning a list keywords
+    @keyword kwfunc: function taking a single string and returning a list of keywords
     @return: a tuple of (number of albums, number of images, {keyword: occurences})
     """
     b = self.batch()
@@ -186,7 +186,7 @@ class SmugTool(pysmug.SmugMug):
       b.images_get(AlbumID=album["id"], AlbumKey=album["Key"], Heavy=True)
 
     images = 0
-    kwfunc = kwfunc or _kwsplit
+    kwfunc = kwfunc or kwsplit
     cloud = collections.defaultdict(lambda: 0)
     for params, response in b():
       album = response["Album"]
