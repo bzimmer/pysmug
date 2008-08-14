@@ -409,38 +409,42 @@ class SmugBatch(SmugBase):
     
     I{This method is not a standard smugmug method.}
 
-    @keyword albumId: the album to download
+    @keyword albumId: the album id to download
+    @keyword albumKey: the album key to download
     @keyword path: the path to store the images
     @keyword format: the size of the image (check smugmug for possible sizes)
     @return: a generator of responses containing the filenames saved locally
     """
     AlbumID = kwargs.get("AlbumID", None)
+    AlbumKey = kwargs.get("AlbumKey", None)
     Path = kwargs.get("Path", None)
     Format = kwargs.get("Format", "Original")
 
     path = os.path.abspath(os.getcwd() if not Path else Path)
 
-    self.images_get(AlbumID=AlbumID)
+    self.images_get(AlbumID=AlbumID, AlbumKey=AlbumKey, Heavy=True)
     album = list(self())[0][1]
 
-    path = os.path.join(path, str(AlbumID))
+    path = os.path.join(path, "%s_%s" % (AlbumID, AlbumKey))
     if not os.path.exists(path):
-      os.mkdir(path)
+      os.makedirs(path)
 
     fp = open(os.path.join(path, "album.txt"), "w")
     pprint.pprint(album, fp)
     fp.close()
 
     connections = list()
-    for image in album["Images"]:
+    for image in album["Album"]["Images"]:
       url = image.get(Format+"URL", None)
       if url is None:
         continue
       fn = image.get("FileName", None)
-      if fn is None:
+      if not fn:
         fn = os.path.split(url)[-1]
       filename = os.path.join(path, fn)
-      connections.append(self._new_connection(url, {"FileName":filename}))
+      
+      # the url is unicode which doesn't play well with pycurl
+      connections.append(self._new_connection(str(url), {"FileName":filename}))
 
     def f(c):
       fn = c.args["FileName"]
