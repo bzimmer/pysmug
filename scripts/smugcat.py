@@ -44,30 +44,38 @@ class SmugCat(object):
     for params, results in b():
       gid, gkey = params["ShareGroupID"], params["ShareTag"]
       idkeys = [(x["id"], x["Key"]) for x in results["ShareGroup"]["Albums"]]
-
+      
       yield (sgs[(gid, gkey)], list(self.cat(fields, idkeys)))
-
-  def cat(self, fields=None, idkeys=None):
+  
+  def cat(self, fields=None, idkeys=None, predicate=None):
     b = self.m.batch()
     
     if not idkeys:
       idkeys = list()
       for album in self.m.albums_get()["Albums"]:
         idkeys.append((album["id"], album["Key"]))
-
+    
     for aid, akey in idkeys:
       b.albums_getInfo(AlbumID=aid, AlbumKey=akey)
-
+    
     for params, results in b():
       album = results["Album"]
       albumId = params["AlbumID"]
-
+      
       name = album["Title"]
       category = album.get("Category", {}).get("Name", None)
       subcategory = album.get("SubCategory", {}).get("Name", None)
-
-      m = [(category or "", subcategory or "", name)]
-  
+      
+      if predicate:
+        try:
+          truth = eval(predicate, album)
+          if not truth:
+            continue
+        except:
+          continue
+      
+      m = [(category or u"", subcategory or u"", name)]
+      
       if fields:
         for field in fields:
           m.append((field, results["Album"][field]))
@@ -78,6 +86,7 @@ if __name__ == '__main__':
   p = OptionParser()
   p.add_option("-s", "--sharegroups", dest="sharegroups", default=False, action="store_true", help="display sharegroup")
   p.add_option("-f", "--fields", dest="fields", default=[], action="append", help="list of fields to display")
+  p.add_option("-p", "--predicate", dest="predicate", default=None, action="store", help="predicate to evaluate")
   opts, args = p.parse_args()
   
   sd = SmugCat()
@@ -87,5 +96,5 @@ if __name__ == '__main__':
       for a in albums:
         print "", a
   else:
-    for a in sd.cat(opts.fields):
+    for a in sd.cat(fields=opts.fields, predicate=opts.predicate):
       print a
