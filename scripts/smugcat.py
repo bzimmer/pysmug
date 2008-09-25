@@ -21,12 +21,88 @@
 # SOFTWARE.
 
 import pysmug
+import logging
+import compiler
 
-_fields = [
-  "SquareThumbs", "Public", "Passworded",
-  "PasswordHint", "Password", "SortMethod",
-  "SortDirection"
-]
+_log = logging.getLogger("smugcat")
+
+_fields = {
+ u'Backprinting': None,
+ u'CanRank': None,
+ u'Category': [u'id', u'Name'],
+ u'Clean': None,
+ u'Comments': None,
+ u'DefaultColor': None,
+ u'Description': None,
+ u'EXIF': None,
+ u'External': None,
+ u'FamilyEdit': None,
+ u'Filenames': None,
+ u'FriendEdit': None,
+ u'Geography': None,
+ u'Header': None,
+ u'HideOwner': None,
+ u'Highlight': [u'id', u'Key'],
+ u'ImageCount': None,
+ u'Key': None,
+ u'Keywords': None,
+ u'Larges': None,
+ u'LastUpdated': None,
+ u'Originals': None,
+ u'Password': None,
+ u'PasswordHint': None,
+ u'Passworded': None,
+ u'Position': None,
+ u'Printable': None,
+ u'ProofDays': None,
+ u'Protected': None,
+ u'Public': None,
+ u'Share': None,
+ u'SmugSearchable': None,
+ u'SortDirection': None,
+ u'SortMethod': None,
+ u'SquareThumbs': None,
+ u'SubCategory': [u'id', u'Name'],
+ u'Template': [u'id'],
+ u'Theme': [u'id'],
+ u'Title': None,
+ u'UnsharpAmount': None,
+ u'UnsharpRadius': None,
+ u'UnsharpSigma': None,
+ u'UnsharpThreshold': None,
+ u'Watermark': [u'id'],
+ u'Watermarking': None,
+ u'WorldSearchable': None,
+ u'X2Larges': None,
+ u'X3Larges': None,
+ u'XLarges': None,
+ u'id': None
+}
+
+class Names:
+  def __init__(self):
+    self.names = []
+  
+  def visitName(self, node):
+    self.names.append(node.name)
+
+class Predicate(object):
+  def __init__(self, predicate):
+    self.predicate = predicate
+    for name in self.names:
+      if name not in _fields:
+        raise ValueError("{%s} not a valid field name" % (name))
+  
+  def __str__(self):
+    return self.predicate
+  
+  def test(self, entity):
+    return eval(self.predicate, entity)
+  
+  @property
+  def names(self):
+    ast = compiler.parse(self.predicate)
+    return compiler.walk(ast, Names()).names
 
 class SmugCat(object):
   
@@ -60,41 +136,44 @@ class SmugCat(object):
     
     for params, results in b():
       album = results["Album"]
-      albumId = params["AlbumID"]
-      
       name = album["Title"]
-      category = album.get("Category", {}).get("Name", None)
-      subcategory = album.get("SubCategory", {}).get("Name", None)
       
       if predicate:
         try:
-          truth = eval(predicate, album)
-          if not truth:
+          if not predicate.test(album):
             continue
-        except:
+        except Exception, e:
+          _log.warn("{%s} : predicate {%s} for album '%s'", e, predicate, name)
           continue
       
+      category = album.get("Category", {}).get("Name", None)
+      subcategory = album.get("SubCategory", {}).get("Name", None)
       m = [(category or u"", subcategory or u"", name)]
       
       if fields:
         for field in fields:
-          m.append((field, results["Album"][field]))
+          m.append((field, album[field]))
       yield m
 
 if __name__ == '__main__':
   from optparse import OptionParser
   p = OptionParser()
   p.add_option("-s", "--sharegroups", dest="sharegroups", default=False, action="store_true", help="display sharegroup")
-  p.add_option("-f", "--fields", dest="fields", default=[], action="append", help="list of fields to display")
+  p.add_option("-f", "--fields", dest="fields", default=[], action="append", help="list of fields to display for each entity")
+  p.add_option("-l", "--list", dest="list", default=False, action="store_true", help="available list of fields to display")
   p.add_option("-p", "--predicate", dest="predicate", default=None, action="store", help="predicate to evaluate")
   opts, args = p.parse_args()
   
   sd = SmugCat()
-  if opts.sharegroups:
+  if opts.list:
+    for item in _fields.items():
+      print item
+  elif opts.sharegroups:
     for sg, albums in sd.sharegroups(opts.fields):
       print sg
       for a in albums:
         print "", a
   else:
-    for a in sd.cat(fields=opts.fields, predicate=opts.predicate):
+    p = opts.predicate and Predicate(opts.predicate) or None
+    for a in sd.cat(fields=opts.fields, predicate=p):
       print a
