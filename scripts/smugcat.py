@@ -23,6 +23,7 @@
 import pysmug
 import logging
 import compiler
+import __builtin__
 
 _log = logging.getLogger("smugcat")
 
@@ -79,6 +80,8 @@ _fields = {
  u'id': None
 }
 
+_names = set(dir(__builtin__) + _fields.keys())
+
 class Names:
   def __init__(self):
     self.names = []
@@ -89,8 +92,9 @@ class Names:
 class Predicate(object):
   def __init__(self, predicate):
     self.predicate = predicate
+    
     for name in self.names:
-      if name not in _fields:
+      if name not in _names:
         raise ValueError("{%s} not a valid field name" % (name))
   
   def __str__(self):
