@@ -31,46 +31,61 @@ _fields = [
 class SmugCat(object):
   
   def __init__(self):
-    self._albums = dict()
+    self.m = pysmug.login()
   
-  def cat(self, fields=None):
-    m = pysmug.login()
-    b = m.batch()
+  def sharegroups(self, fields=None):
+    sgs = dict()
+    b = self.m.batch()
+    for sg in self.m.sharegroups_get()["ShareGroups"]:
+      gid, gkey = sg["id"], sg["ShareTag"]
+      sgs[(gid, gkey)] = sg["Name"]
+      b.sharegroups_getInfo(ShareTag=gkey, ShareGroupID=gid)
     
-    albums = dict()
-    for album in m.albums_get()["Albums"]:
+    for params, results in b():
+      gid, gkey = params["ShareGroupID"], params["ShareTag"]
+      idkeys = [(x["id"], x["Key"]) for x in results["ShareGroup"]["Albums"]]
+
+      yield (sgs[(gid, gkey)], list(self.cat(fields, idkeys)))
+
+  def cat(self, fields=None, idkeys=None):
+    b = self.m.batch()
+    
+    if not idkeys:
+      idkeys = list()
+      for album in self.m.albums_get()["Albums"]:
+        idkeys.append((album["id"], album["Key"]))
+
+    for aid, akey in idkeys:
+      b.albums_getInfo(AlbumID=aid, AlbumKey=akey)
+
+    for params, results in b():
+      album = results["Album"]
+      albumId = params["AlbumID"]
+
+      name = album["Title"]
       category = album.get("Category", {}).get("Name", None)
       subcategory = album.get("SubCategory", {}).get("Name", None)
-      albumId, name, key = album["id"], album["Title"], album["Key"]
-      
-      m = []
-      if category:
-        m.append(category)
-      if subcategory:
-        m.append(subcategory)
-      m.append(name)
-      albums[albumId] = " > ".join(m)
+
+      m = [(category or "", subcategory or "", name)]
+  
       if fields:
-        b.albums_getInfo(AlbumID=albumId, AlbumKey=key)
-    
-    if fields:
-      for params, results in b():
-        albumId = params["AlbumID"]
-        m = [albums[albumId]]
-        if fields:
-          for field in fields:
-            m.append("%s=%s" % (field, results["Album"][field]))
-        yield "; ".join(m)
-    else:
-      for a in albums.values():
-        yield a
+        for field in fields:
+          m.append((field, results["Album"][field]))
+      yield m
 
 if __name__ == '__main__':
   from optparse import OptionParser
   p = OptionParser()
+  p.add_option("-s", "--sharegroups", dest="sharegroups", default=False, action="store_true", help="display sharegroup")
   p.add_option("-f", "--fields", dest="fields", default=[], action="append", help="list of fields to display")
   opts, args = p.parse_args()
   
   sd = SmugCat()
-  for a in sd.cat(opts.fields):
-    print a
+  if opts.sharegroups:
+    for sg, albums in sd.sharegroups(opts.fields):
+      print sg
+      for a in albums:
+        print "", a
+  else:
+    for a in sd.cat(opts.fields):
+      print a
