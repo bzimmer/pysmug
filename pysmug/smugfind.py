@@ -81,7 +81,13 @@ _fields = {
 _names = set(dir(__builtin__) + _fields.keys())
 
 class Predicate(object):
+  """Evaluator of Python expressions.
+  """
   def __init__(self, predicate):
+    """Initializes the predicate.
+    
+    If the expression contains unknown names a ValueError is raised.
+    """
     self.predicate = predicate
     
     for name in self.names:
@@ -96,6 +102,10 @@ class Predicate(object):
   
   @property
   def names(self):
+    """Returns all the variable names found in the expression.
+    
+    @return: sequense of variable names in the expression
+    """
     class _Names:
       def __init__(self):
         self.names = []
@@ -107,12 +117,19 @@ class Predicate(object):
     return compiler.walk(ast, _Names()).names
 
 class SmugFind(object):
+  """Queries SmugMug for albums and sharegroups.
+  """
   
   def __init__(self):
     self.m = pysmug.login()
     self.fields = dict(_fields)
   
   def sharegroups(self, fields=None):
+    """Finds sharegroups.
+
+    @keyword fields: a list of fields to return, if None, returns (ShareKey, ShareGroupID, ShareName)
+    @return: sequence of sharegroups with the requested fields
+    """
     sgs = dict()
     b = self.m.batch()
     for sg in self.m.sharegroups_get()["ShareGroups"]:
@@ -129,6 +146,14 @@ class SmugFind(object):
       yield (p, self.find(fields, idkeys))
   
   def find(self, fields=None, idkeys=None, predicate=None):
+    """Finds albums, optionally matching a predicate.
+
+    @keyword fields: a list of fields to return, if None, returns (Category, SubCategory, Name)
+    @keyword idkeys: sequence of (AlbumID, AlbumKey) tuples to filter returned albums
+    @keyword predicate: a Python expression evaluated in the context of the album data
+                        if the expression evaluates False, the album is rejected
+    @return: sequence of albums matching both C{idkeys} and C{predicate}, with the requested fields
+    """
     b = self.m.batch()
     
     if not idkeys:
