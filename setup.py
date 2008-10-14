@@ -66,7 +66,7 @@ def datafiles():
 def scripts():
   """Returns a list of script files to install.
   """
-  return glob.glob(os.path.join("scripts", "*.py"))
+  return glob.glob(os.path.join("scripts", "*"))
 
 setup(
   name = PACKAGE,

@@ -1,5 +1,3 @@
-#! /usr/bin/python
-
 # Copyright (c) 2008 Brian Zimmer <bzimmer@ziclix.com>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -25,59 +23,59 @@ import logging
 import compiler
 import __builtin__
 
-_log = logging.getLogger("smugcat")
+_log = logging.getLogger("smugfind")
 
 _fields = {
- u'Backprinting': None,
- u'CanRank': None,
- u'Category': [u'id', u'Name'],
- u'Clean': None,
- u'Comments': None,
- u'DefaultColor': None,
- u'Description': None,
- u'EXIF': None,
- u'External': None,
- u'FamilyEdit': None,
- u'Filenames': None,
- u'FriendEdit': None,
- u'Geography': None,
- u'Header': None,
- u'HideOwner': None,
- u'Highlight': [u'id', u'Key'],
- u'ImageCount': None,
- u'Key': None,
- u'Keywords': None,
- u'Larges': None,
- u'LastUpdated': None,
- u'Originals': None,
- u'Password': None,
- u'PasswordHint': None,
- u'Passworded': None,
- u'Position': None,
- u'Printable': None,
- u'ProofDays': None,
- u'Protected': None,
- u'Public': None,
- u'Share': None,
- u'SmugSearchable': None,
- u'SortDirection': None,
- u'SortMethod': None,
- u'SquareThumbs': None,
- u'SubCategory': [u'id', u'Name'],
- u'Template': [u'id'],
- u'Theme': [u'id'],
- u'Title': None,
- u'UnsharpAmount': None,
- u'UnsharpRadius': None,
- u'UnsharpSigma': None,
- u'UnsharpThreshold': None,
- u'Watermark': [u'id'],
- u'Watermarking': None,
- u'WorldSearchable': None,
- u'X2Larges': None,
- u'X3Larges': None,
- u'XLarges': None,
- u'id': None
+  u'Backprinting': None,
+  u'CanRank': None,
+  u'Category': [u'id', u'Name'],
+  u'Clean': None,
+  u'Comments': None,
+  u'DefaultColor': None,
+  u'Description': None,
+  u'EXIF': None,
+  u'External': None,
+  u'FamilyEdit': None,
+  u'Filenames': None,
+  u'FriendEdit': None,
+  u'Geography': None,
+  u'Header': None,
+  u'HideOwner': None,
+  u'Highlight': [u'id', u'Key'],
+  u'ImageCount': None,
+  u'Key': None,
+  u'Keywords': None,
+  u'Larges': None,
+  u'LastUpdated': None,
+  u'Originals': None,
+  u'Password': None,
+  u'PasswordHint': None,
+  u'Passworded': None,
+  u'Position': None,
+  u'Printable': None,
+  u'ProofDays': None,
+  u'Protected': None,
+  u'Public': None,
+  u'Share': None,
+  u'SmugSearchable': None,
+  u'SortDirection': None,
+  u'SortMethod': None,
+  u'SquareThumbs': None,
+  u'SubCategory': [u'id', u'Name'],
+  u'Template': [u'id'],
+  u'Theme': [u'id'],
+  u'Title': None,
+  u'UnsharpAmount': None,
+  u'UnsharpRadius': None,
+  u'UnsharpSigma': None,
+  u'UnsharpThreshold': None,
+  u'Watermark': [u'id'],
+  u'Watermarking': None,
+  u'WorldSearchable': None,
+  u'X2Larges': None,
+  u'X3Larges': None,
+  u'XLarges': None,
+  u'id': None
 }
 
 _names = set(dir(__builtin__) + _fields.keys())
@@ -108,7 +106,7 @@ class Predicate(object):
     ast = compiler.parse(self.predicate)
     return compiler.walk(ast, Names()).names
 
-class SmugCat(object):
+class SmugFind(object):
   
   def __init__(self):
     self.m = pysmug.login()
@@ -125,9 +123,9 @@ class SmugCat(object):
       gid, gkey = params["ShareGroupID"], params["ShareTag"]
       idkeys = [(x["id"], x["Key"]) for x in results["ShareGroup"]["Albums"]]
       
-      yield (sgs[(gid, gkey)], list(self.cat(fields, idkeys)))
+      yield (sgs[(gid, gkey)], list(self.find(fields, idkeys)))
   
-  def cat(self, fields=None, idkeys=None, predicate=None):
+  def find(self, fields=None, idkeys=None, predicate=None):
     b = self.m.batch()
     
     if not idkeys:
@@ -158,26 +156,3 @@ class SmugCat(object):
         for field in fields:
           m.append((field, album[field]))
       yield m
-
-if __name__ == '__main__':
-  from optparse import OptionParser
-  p = OptionParser()
-  p.add_option("-s", "--sharegroups", dest="sharegroups", default=False, action="store_true", help="display sharegroup")
-  p.add_option("-f", "--fields", dest="fields", default=[], action="append", help="list of fields to display for each entity")
-  p.add_option("-l", "--list", dest="list", default=False, action="store_true", help="available list of fields to display")
-  p.add_option("-p", "--predicate", dest="predicate", default=None, action="store", help="predicate to evaluate")
-  opts, args = p.parse_args()
-  
-  sd = SmugCat()
-  if opts.list:
-    for item in _fields.items():
-      print item
-  elif opts.sharegroups:
-    for sg, albums in sd.sharegroups(opts.fields):
-      print sg
-      for a in albums:
-        print "", a
-  else:
-    p = opts.predicate and Predicate(opts.predicate) or None
-    for a in sd.cat(fields=opts.fields, predicate=p):
-      print a
