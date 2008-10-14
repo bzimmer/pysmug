@@ -31,14 +31,19 @@ p.add_option("-p", "--predicate", dest="predicate", default=None, action="store"
 opts, args = p.parse_args()
 
 sd = SmugFind()
+
+if opts.fields:
+  for f in opts.fields:
+    if f not in sd.fields:
+      raise KeyError("field {%s} doesn't exist" % (f))
+
 if opts.list:
-  for item in _fields.items():
+  for item in sd.fields.items():
     print item
 elif opts.sharegroups:
   for sg, albums in sd.sharegroups(opts.fields):
-    print sg
     for a in albums:
-      print "", a
+      print (sg, a)
 else:
   p = opts.predicate and Predicate(opts.predicate) or None
   for a in sd.find(fields=opts.fields, predicate=p):

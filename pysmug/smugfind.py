@@ -28,7 +28,7 @@ _log = logging.getLogger("smugfind")
 _fields = {
   u'Backprinting': None,
   u'CanRank': None,
-  u'Category': [u'id', u'Name'],
+  u'Category': (u'id', u'Name'),
   u'Clean': None,
   u'Comments': None,
   u'DefaultColor': None,
@@ -41,7 +41,7 @@ _fields = {
   u'Geography': None,
   u'Header': None,
   u'HideOwner': None,
-  u'Highlight': [u'id', u'Key'],
+  u'Highlight': (u'id', u'Key'),
   u'ImageCount': None,
   u'Key': None,
   u'Keywords': None,
@@ -61,15 +61,15 @@ _fields = {
   u'SortDirection': None,
   u'SortMethod': None,
   u'SquareThumbs': None,
-  u'SubCategory': [u'id', u'Name'],
-  u'Template': [u'id'],
-  u'Theme': [u'id'],
+  u'SubCategory': (u'id', u'Name'),
+  u'Template': (u'id'),
+  u'Theme': (u'id'),
   u'Title': None,
   u'UnsharpAmount': None,
   u'UnsharpRadius': None,
   u'UnsharpSigma': None,
   u'UnsharpThreshold': None,
-  u'Watermark': [u'id'],
+  u'Watermark': (u'id'),
   u'Watermarking': None,
   u'WorldSearchable': None,
   u'X2Larges': None,
@@ -79,13 +79,6 @@ _fields = {
 }
 
 _names = set(dir(__builtin__) + _fields.keys())
-
-class Names:
-  def __init__(self):
-    self.names = []
-  
-  def visitName(self, node):
-    self.names.append(node.name)
 
 class Predicate(object):
   def __init__(self, predicate):
@@ -103,13 +96,21 @@ class Predicate(object):
   
   @property
   def names(self):
+    class _Names:
+      def __init__(self):
+        self.names = []
+
+      def visitName(self, node):
+        self.names.append(node.name)
+
     ast = compiler.parse(self.predicate)
-    return compiler.walk(ast, Names()).names
+    return compiler.walk(ast, _Names()).names
 
 class SmugFind(object):
   
   def __init__(self):
     self.m = pysmug.login()
+    self.fields = dict(_fields)
   
   def sharegroups(self, fields=None):
     sgs = dict()
@@ -123,7 +124,9 @@ class SmugFind(object):
       gid, gkey = params["ShareGroupID"], params["ShareTag"]
       idkeys = [(x["id"], x["Key"]) for x in results["ShareGroup"]["Albums"]]
       
-      yield (sgs[(gid, gkey)], list(self.find(fields, idkeys)))
+      p = [("ShareKey", gkey), ("ShareGroupID", gid), ("ShareName", sgs[(gid, gkey)])]
+      
+      yield (p, self.find(fields, idkeys))
   
   def find(self, fields=None, idkeys=None, predicate=None):
     b = self.m.batch()
@@ -150,7 +153,7 @@ class SmugFind(object):
       
       category = album.get("Category", {}).get("Name", None)
       subcategory = album.get("SubCategory", {}).get("Name", None)
-      m = [(category or u"", subcategory or u"", name)]
+      m = [(category or u"", subcategory or u"", name)] if not fields else []
       
       if fields:
         for field in fields:
