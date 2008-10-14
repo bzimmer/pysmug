@@ -7,8 +7,8 @@ the pycurl library for connectivity.
 More information available at http://code.google.com/p/pysmug.
 
 Author:  Brian Zimmer <bzimmer@ziclix.com>
-Version: 0.4
-Date:    05/13/2008
+Version: 0.5
+Date:    xx/xx/2008
 
 Requirements
 ------------
@@ -22,8 +22,8 @@ Requirements
 Installation and examples
 -------------------------
 
-$ tar zxvf pysmug-0.4.tar.gz
-$ cd pysmug-0.4
+$ unzip pysmug-0.5.zip
+$ cd pysmug-0.5
 $ python setup.py install
 $ <create a configuration file>
 $ python setup.py nosetests
