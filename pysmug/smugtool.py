@@ -113,7 +113,7 @@ class SmugTool(pysmug.SmugMug):
 
     # map
     b = self.batch()
-    for imageId, imageKey in ((image["id"], image["Key"]) for image in images["Images"]):
+    for imageId, imageKey in ((image["id"], image["Key"]) for image in images["Album"]["Images"]):
       # add each image to the batch
       b.images_getInfo(imageID=imageId, imageKey=imageKey)
       if exif:
