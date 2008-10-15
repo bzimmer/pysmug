@@ -143,9 +143,9 @@ class SmugFind(object):
       
       p = [("ShareKey", gkey), ("ShareGroupID", gid), ("ShareName", sgs[(gid, gkey)])]
       
-      yield (p, self.find(fields, idkeys))
+      yield (p, self.albums(fields, idkeys))
   
-  def find(self, fields=None, idkeys=None, predicate=None):
+  def albums(self, fields=None, idkeys=None, predicate=None):
     """Finds albums, optionally matching a predicate.
 
     @keyword fields: a list of fields to return, if None, returns (Category, SubCategory, Name)
