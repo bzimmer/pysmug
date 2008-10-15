@@ -103,8 +103,6 @@ class Predicate(object):
   @property
   def names(self):
     """Returns all the variable names found in the expression.
-    
-    @return: sequense of variable names in the expression
     """
     class _Names:
       def __init__(self):
