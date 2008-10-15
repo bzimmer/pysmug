@@ -4,7 +4,7 @@ change details.
 pysmug ChangeLog
 ================
 
-Changes in v0.5 (xx-xx-2008):
+Changes in v0.5 (10-14-2008):
   * added smugfind[.py] for command line searching through albums
   * added tagcloud function
   * fixed a number of bugs with downloading associated with the 1.2.2
