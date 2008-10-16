@@ -28,9 +28,20 @@ p.add_option("-s", "--sharegroups", dest="sharegroups", default=False, action="s
 p.add_option("-f", "--fields", dest="fields", default=[], action="append", help="list of fields to display for each entity")
 p.add_option("-l", "--list", dest="list", default=False, action="store_true", help="available list of fields to display")
 p.add_option("-p", "--predicate", dest="predicate", default=None, action="store", help="predicate to evaluate")
+p.add_option("-a", "--all", dest="all", default=False, action="store_true", help="display all fields")
+p.add_option("", "--pretty", dest="pretty", default=False, action="store_true", help="pretty print results")
 opts, args = p.parse_args()
 
 sd = SmugFind()
+
+if opts.all:
+  opts.fields = sd.fields.keys()
+
+def printer(x):
+  print x
+
+if opts.pretty:
+  from pprint import pprint as printer
 
 if opts.list:
   for item in sd.fields.items():
@@ -38,9 +49,9 @@ if opts.list:
 elif opts.sharegroups:
   for sg, albums in sd.sharegroups(opts.fields):
     for a in albums:
-      print (sg, a)
+      print (sg, sorted(a))
 else:
   p = opts.predicate and Predicate(opts.predicate) or None
   for a in sd.albums(fields=opts.fields, predicate=p):
-    print a
+    printer(sorted(a))
 
