@@ -32,11 +32,6 @@ opts, args = p.parse_args()
 
 sd = SmugFind()
 
-if opts.fields:
-  for f in opts.fields:
-    if f not in sd.fields:
-      raise KeyError("field {%s} doesn't exist" % (f))
-
 if opts.list:
   for item in sd.fields.items():
     print item

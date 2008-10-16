@@ -23,6 +23,8 @@ import logging
 import compiler
 import __builtin__
 
+from pysmug.keywords import smugmug_keyword
+
 _log = logging.getLogger("smugfind")
 
 _fields = {
@@ -89,10 +91,9 @@ class Predicate(object):
     If the expression contains unknown names a ValueError is raised.
     """
     self.predicate = predicate
-    
-    for name in self.names:
-      if name not in _names:
-        raise ValueError("{%s} not a valid field name" % (name))
+    # for name in self.names:
+    #   if name not in _names:
+    #     raise ValueError("{%s} not a valid field name" % (name))
   
   def __str__(self):
     return self.predicate
@@ -107,12 +108,14 @@ class Predicate(object):
     class _Names:
       def __init__(self):
         self.names = []
-
+      
       def visitName(self, node):
         self.names.append(node.name)
-
+    
     ast = compiler.parse(self.predicate)
-    return compiler.walk(ast, _Names()).names
+    names = compiler.walk(ast, _Names()).names
+    # names = [smugmug_keyword(x) for x in names]
+    return names
 
 class SmugFind(object):
   """Queries SmugMug for albums and sharegroups.
@@ -122,9 +125,12 @@ class SmugFind(object):
     self.m = pysmug.login()
     self.fields = dict(_fields)
   
+  def has_field(self, field):
+    return smugmug_keyword(field) in self.fields
+  
   def sharegroups(self, fields=None):
     """Finds sharegroups.
-
+    
     @keyword fields: a list of fields to return, if None, returns (ShareKey, ShareGroupID, ShareName)
     @return: sequence of sharegroups with the requested fields
     """
@@ -145,23 +151,34 @@ class SmugFind(object):
   
   def albums(self, fields=None, idkeys=None, predicate=None):
     """Finds albums, optionally matching a predicate.
-
+    
     @keyword fields: a list of fields to return, if None, returns (Category, SubCategory, Name)
     @keyword idkeys: sequence of (AlbumID, AlbumKey) tuples to filter returned albums
     @keyword predicate: a Python expression evaluated in the context of the album data
                         if the expression evaluates False, the album is rejected
     @return: sequence of albums matching both C{idkeys} and C{predicate}, with the requested fields
     """
-    b = self.m.batch()
+    # format the keyword names correctly
+    fields = [smugmug_keyword(x) for x in fields] if fields else []
+    for i in range(len(fields)-1, -1, -1):
+      f = fields[i]
+      if not self.has_field(f):
+        _log.warn("field {%s} doesn't exist" % (f))
+        del fields[i]
+        continue
     
+    # if idkeys, fetch only those albums otherwise get them all
     if not idkeys:
       idkeys = list()
       for album in self.m.albums_get()["Albums"]:
         idkeys.append((album["id"], album["Key"]))
     
+    # get the albums
+    b = self.m.batch()
     for aid, akey in idkeys:
       b.albums_getInfo(AlbumID=aid, AlbumKey=akey)
     
+    # work the results
     for params, results in b():
       album = results["Album"]
       name = album["Title"]
@@ -178,7 +195,7 @@ class SmugFind(object):
       subcategory = album.get("SubCategory", {}).get("Name", None)
       m = [(category or u"", subcategory or u"", name)] if not fields else []
       
-      if fields:
-        for field in fields:
-          m.append((field, album[field]))
+      for field in fields:
+        m.append((field, album[field]))
+      
       yield m
