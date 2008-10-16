@@ -114,7 +114,6 @@ class Predicate(object):
     
     ast = compiler.parse(self.predicate)
     names = compiler.walk(ast, _Names()).names
-    # names = [smugmug_keyword(x) for x in names]
     return names
 
 class SmugFind(object):
@@ -126,6 +125,7 @@ class SmugFind(object):
     self.fields = dict(_fields)
   
   def has_field(self, field):
+    if field == "id": return True
     return smugmug_keyword(field) in self.fields
   
   def sharegroups(self, fields=None):
@@ -159,7 +159,10 @@ class SmugFind(object):
     @return: sequence of albums matching both C{idkeys} and C{predicate}, with the requested fields
     """
     # format the keyword names correctly
-    fields = [smugmug_keyword(x) for x in fields] if fields else []
+    def smk(x):
+      if x == "id": return x
+      return smugmug_keyword(x)
+    fields = [smk(x) for x in fields] if fields else []
     for i in range(len(fields)-1, -1, -1):
       f = fields[i]
       if not self.has_field(f):
@@ -191,11 +194,13 @@ class SmugFind(object):
           _log.warn("{%s} : predicate {%s} for album '%s'", e, predicate, name)
           continue
       
-      category = album.get("Category", {}).get("Name", None)
-      subcategory = album.get("SubCategory", {}).get("Name", None)
-      m = [(category or u"", subcategory or u"", name)] if not fields else []
-      
-      for field in fields:
-        m.append((field, album[field]))
+      m = []
+      if fields:
+        for field in fields:
+          m.append((field, album.get(field, None)))
+      else:
+        category = album.get("Category", {}).get("Name", None)
+        subcategory = album.get("SubCategory", {}).get("Name", None)
+        m.append((category or u"", subcategory or u"", name))
       
       yield m
