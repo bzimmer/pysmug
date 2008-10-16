@@ -28,7 +28,8 @@ from hashlib import md5
 from itertools import islice
 from simplejson import loads as jsondecode
 
-from pysmug import __version__, smugmug_keywords
+from pysmug import __version__
+from pysmug.keywords import smugmug_keywords
 from pysmug.methods import methods as _methods
 
 _concurrent = 10

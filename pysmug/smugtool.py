@@ -19,9 +19,11 @@
 # SOFTWARE.
 
 import re
-import pysmug
 import logging
 import collections
+
+from pysmug.smugmug import SmugMug
+from pysmug.keywords import smugmug_keywords
 
 _c = re.compile('"(.*?)"')
 def kwsplit(word):
@@ -39,7 +41,7 @@ def kwsplit(word):
   # semi-colon separated strings (will always create a list)
   return [z.strip() for z in word.split(";") if z]
 
-class SmugTool(pysmug.SmugMug):
+class SmugTool(SmugMug):
 
   def categories_getTree(self):
     """Return the tree of categories and sub-categories.
@@ -77,7 +79,7 @@ class SmugTool(pysmug.SmugMug):
 
     return {u"method":u"pysmug.categories.getTree", u"Categories":categories, u"stat":u"ok"}
 
-  @pysmug.smugmug_keywords
+  @smugmug_keywords
   def albums_details(self, **kwargs):
     """Returns the full details of an album including EXIF data for all images.  It
     is the composition of calls to C{albums_getInfo}, C{images_getInfo} and
