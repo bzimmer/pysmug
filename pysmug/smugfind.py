@@ -25,7 +25,7 @@ import __builtin__
 
 from pysmug.keywords import smugmug_keyword
 
-_log = logging.getLogger("smugfind")
+logger = logging.getLogger("smugfind")
 
 _fields = {
   u'Backprinting': None,
@@ -166,7 +166,7 @@ class SmugFind(object):
     for i in range(len(fields)-1, -1, -1):
       f = fields[i]
       if not self.has_field(f):
-        _log.warn("field {%s} doesn't exist" % (f))
+        logger.warn("field {%s} doesn't exist" % (f))
         del fields[i]
         continue
     
@@ -191,7 +191,7 @@ class SmugFind(object):
           if not predicate.test(album):
             continue
         except Exception, e:
-          _log.warn("{%s} : predicate {%s} for album '%s'", e, predicate, name)
+          logger.warn("{%s} : predicate {%s} for album '%s'", e, predicate, name)
           continue
       
       m = []

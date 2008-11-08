@@ -42,6 +42,8 @@ _curlinfo = (
   ("download-speed", pycurl.SPEED_DOWNLOAD),
 )
 
+logger = logging.getLogger("smugmug")
+
 class SmugMugException(Exception):
   """Representation of a SmugMug exception."""
 
@@ -144,7 +146,7 @@ class SmugBase(object):
     if self.verbose:
       c.setopt(pycurl.VERBOSE, True)
       c.setopt(pycurl.DEBUGFUNCTION, self.verbose)
-    logging.debug(url)
+    logger.debug(url)
     
     if self.progress:
       c.setopt(c.NOPROGRESS, False)
@@ -175,7 +177,7 @@ class SmugBase(object):
       raise HTTPException(c.errstr(), code)
 
     json = c.response.getvalue()
-    logging.debug(json)
+    logger.debug(json)
 
     resp = jsondecode(json)
     if not resp["stat"] == "ok":
@@ -371,6 +373,7 @@ class SmugBatch(SmugBase):
     n = (n if n is not None else self.concurrent)
     if n <= 0:
       raise SmugMugException("concurrent requests must be greater than zero")
+    logger.debug("using %d concurrent connections", n)
 
     ibatch = iter(batch)
     total, working = len(batch), 0
