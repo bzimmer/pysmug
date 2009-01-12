@@ -22,6 +22,7 @@ __apikeys = dict((x.lower(), (x, f)) for x, f in (
   ("PasswordHash", None),
   ("Pretty", _smugbool),
   ("Strict", _smugbool),
+  ("NickName", None),
 ))
 """A mapping between lower-cased names and their SmugMug API case and formatting
 function.  This is a one-way mapping usually used to format a Python C{bool}
