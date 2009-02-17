@@ -144,8 +144,8 @@ class SmugBase(object):
     c.setopt(c.WRITEFUNCTION, c.response.write)
     
     if self.verbose:
-      c.setopt(pycurl.VERBOSE, True)
-      c.setopt(pycurl.DEBUGFUNCTION, self.verbose)
+      c.setopt(c.VERBOSE, True)
+      c.setopt(c.DEBUGFUNCTION, self.verbose)
     logger.debug(url)
     
     if self.progress:
