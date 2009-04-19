@@ -6,3 +6,4 @@ dist
 *.swp
 doc/html/*
 _m
+.DS_Store
