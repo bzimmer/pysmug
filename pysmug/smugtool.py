@@ -27,68 +27,68 @@ from pysmug.keywords import smugmug_keywords
 
 _c = re.compile('"(.*?)"')
 def kwsplit(word):
-  """
-  Some keyword samples::
+    """
+    Some keyword samples::
 
-    a; b;
-    "abc" "def"
-    a
-  """
-  x = _c.findall(word)
-  if x:
-    # space-separated quoted strings
-    return x
-  # semi-colon separated strings (will always create a list)
-  return [z.strip() for z in word.split(";") if z]
+        a; b;
+        "abc" "def"
+        a
+    """
+    x = _c.findall(word)
+    if x:
+        # space-separated quoted strings
+        return x
+    # semi-colon separated strings (will always create a list)
+    return [z.strip() for z in word.split(";") if z]
 
 class SmugTool(SmugMug):
 
-  def categories_getTree(self):
-    """Return the tree of categories and sub-categories.
+    def categories_getTree(self):
+        """Return the tree of categories and sub-categories.
 
-    The format of the response tree::
+        The format of the response tree::
 
-      {u'Categories': [{u'Name': u'Other', 'SubCategories': {}, u'id': 0},
-                       {u'Name': u'Airplanes', 'SubCategories': {}, u'id': 41},
-                       {u'Name': u'Animals', 'SubCategories': {}, u'id': 1},
-                       {u'Name': u'Aquariums', 'SubCategories': {}, u'id': 25},
-                       {u'Name': u'Architecture', 'SubCategories': {}, u'id': 2},
-                       {u'Name': u'Art', 'SubCategories': {}, u'id': 3},
-                       {u'Name': u'Arts and Crafts', 'SubCategories': {}, u'id': 43},
-                       ...,
-                       ],
-       u'method': u'pysmug.categories.getTree',
-       u'stat': u'ok'}
-    """
-    b = self.batch()
-    b.categories_get()
-    b.subcategories_getAll()
+            {u'Categories': [{u'Name': u'Other', 'SubCategories': {}, u'id': 0},
+                             {u'Name': u'Airplanes', 'SubCategories': {}, u'id': 41},
+                             {u'Name': u'Animals', 'SubCategories': {}, u'id': 1},
+                             {u'Name': u'Aquariums', 'SubCategories': {}, u'id': 25},
+                             {u'Name': u'Architecture', 'SubCategories': {}, u'id': 2},
+                             {u'Name': u'Art', 'SubCategories': {}, u'id': 3},
+                             {u'Name': u'Arts and Crafts', 'SubCategories': {}, u'id': 43},
+                             ...,
+                             ],
+             u'method': u'pysmug.categories.getTree',
+             u'stat': u'ok'}
+        """
+        b = self.batch()
+        b.categories_get()
+        b.subcategories_getAll()
 
-    methods = dict()
-    for params, results in b():
-      methods[params["method"]] = results
+        methods = dict()
+        for params, results in b():
+            methods[params["method"]] = results
 
-    subcategories = collections.defaultdict(list)
-    for subcategory in methods["smugmug.subcategories.getAll"]["SubCategories"]:
-      category = subcategory.pop("Category")
-      subcategories[category["id"]].append(subcategory)
+        subcategories = collections.defaultdict(list)
+        for subcategory in methods["smugmug.subcategories.getAll"]["SubCategories"]:
+            category = subcategory.pop("Category")
+            subcategories[category["id"]].append(subcategory)
 
-    categories = methods["smugmug.categories.get"]["Categories"]
-    for category in categories:
-      category["SubCategories"] = subcategories.get(category["id"], {})
+        categories = methods["smugmug.categories.get"]["Categories"]
+        for category in categories:
+            category["SubCategories"] = subcategories.get(category["id"], {})
 
-    return {u"method":u"pysmug.categories.getTree", u"Categories":categories, u"stat":u"ok"}
+        return {u"method":u"pysmug.categories.getTree", u"Categories":categories, u"stat":u"ok"}
 
-  @smugmug_keywords
-  def albums_details(self, **kwargs):
-    """Returns the full details of an album including EXIF data for all images.  It
-    is the composition of calls to C{albums_getInfo}, C{images_getInfo} and
-    C{images_getEXIF} where the C{images_*} calls are done in batch. The primary purpose
-    for this method is to provide easy access to a full album worth of metadata quickly.
+    @smugmug_keywords
+    def albums_details(self, **kwargs):
+        """Returns the full details of an album including EXIF data for all images.    It
+        is the composition of calls to C{albums_getInfo}, C{images_getInfo} and
+        C{images_getEXIF} where the C{images_*} calls are done in batch. The primary purpose
+        for this method is to provide easy access to a full album worth of metadata quickly.
 
-    The format of the response tree::
+        The format of the response tree::
 
-      {'Album': {'Attribute1': 'Value1',
+            {'Album': {'Attribute1': 'Value1',
                  'AttributeN': 'ValueN',
                  'Images': [{'EXIF': {'EXIFAttribute1': 'EXIFValue1',
                                       'EXIFAttributeN': 'EXIFValueN'},
@@ -98,103 +98,104 @@ class SmugTool(SmugMug):
                                       'EXIFAttributeN': 'EXIFValueN'},
                              'ImageAttribute1': 'ImageValue1',
                              'ImageAttributeN': 'ImageAttributeN'}]},
-       'Statistics': {},
-       'method': 'pysmug.albums.details',
-       'stat': 'ok'}
+             'Statistics': {},
+             'method': 'pysmug.albums.details',
+             'stat': 'ok'}
 
-    @keyword albumId: the id of the album to query
-    @keyword albumKey: the key of the album to query
-    @keyword exif: returns EXIF metadata about each image
-    @return: a dictionary of the album and image details
-    """
-    albumId = kwargs.get("AlbumID")
-    albumKey = kwargs.get("AlbumKey")
-    exif = kwargs.get("Exif")
-    album = self.albums_getInfo(albumId=albumId, albumKey=albumKey)
-    images = self.images_get(albumId=albumId, albumKey=albumKey)
+        @keyword albumId: the id of the album to query
+        @keyword albumKey: the key of the album to query
+        @keyword exif: returns EXIF metadata about each image
+        @return: a dictionary of the album and image details
+        """
+        albumId = kwargs.get("AlbumID")
+        albumKey = kwargs.get("AlbumKey")
+        exif = kwargs.get("Exif")
+        album = self.albums_getInfo(albumId=albumId, albumKey=albumKey)
+        images = self.images_get(albumId=albumId, albumKey=albumKey)
 
-    # map
-    b = self.batch()
-    for imageId, imageKey in ((image["id"], image["Key"]) for image in images["Album"]["Images"]):
-      # add each image to the batch
-      b.images_getInfo(imageID=imageId, imageKey=imageKey)
-      if exif:
-        b.images_getEXIF(imageID=imageId, imageKey=imageKey)
+        # map
+        b = self.batch()
+        for imageId, imageKey in ((image["id"], image["Key"]) for image in images["Album"]["Images"]):
+            # add each image to the batch
+            b.images_getInfo(imageID=imageId, imageKey=imageKey)
+            if exif:
+                b.images_getEXIF(imageID=imageId, imageKey=imageKey)
 
-    # combine
-    responses = collections.defaultdict(dict)
-    for (params, value) in b():
-      imageIdKey = (params["ImageID"], params["ImageKey"])
-      responses[imageIdKey][params["method"]] = value
+        # combine
+        responses = collections.defaultdict(dict)
+        for (params, value) in b():
+            imageIdKey = (params["ImageID"], params["ImageKey"])
+            responses[imageIdKey][params["method"]] = value
 
-    # reduce
-    album[u"Album"][u"Images"] = images = []
-    for value in responses.values():
-      img = value["smugmug.images.getInfo"]["Image"]
-      if exif:
-        img[u"EXIF"] = value["smugmug.images.getEXIF"]["Image"]
-      images.append(img)
+        # reduce
+        album[u"Album"][u"Images"] = images = []
+        for value in responses.values():
+            img = value["smugmug.images.getInfo"]["Image"]
+            if exif:
+                img[u"EXIF"] = value["smugmug.images.getEXIF"]["Image"]
+            images.append(img)
 
-    # return
-    album.update({u"method":u"pysmug.albums.details", u"stat":u"ok", u"Statistics":{}})
-    return album
+        # return
+        album.update({u"method":u"pysmug.albums.details", u"stat":u"ok", u"Statistics":{}})
+        return album
 
-  def unused_albums(self):
-    """Returns a generator of albums with ImageCount == 0.
-    
-    @return: a generator of albums with an image count == 0
-    """
-    b = self.batch()
-    for album in self.albums_get()["Albums"]:
-      b.albums_getInfo(albumId=album["id"], albumKey=album["Key"])
-    return (info["Album"] for params, info in b() if info["Album"]["ImageCount"] == 0)
+    def unused_albums(self):
+        """Returns a generator of albums with ImageCount == 0.
 
-  def unused_categories(self):
-    """Returns a generator of categories or subcategories with no
-    albums.
-    
-    @return: a generator of [sub]categories with no associated albums
-    """
-    used = dict()
-    albums = self.albums_get()["Albums"]
-    for album in albums:
-      category = album["Category"]
-      used[("category", category["id"])] = category
-      subcategory = album.get("SubCategory", None)
-      if subcategory:
-        used[("subcategory", album["SubCategory"]["id"])] = subcategory
-    tree = self.categories_getTree()
-    for c in tree["Categories"]:
-      cid = ("category", c["id"])
-      if not cid in used:
-        c["Type"] = "Category"
-        yield c
-      for s in c["SubCategories"]:
-        sid = ("subcategory", s["id"])
-        if not sid in used:
-          s["Type"] = "SubCategory"
-          yield s
+        @return: a generator of albums with an image count == 0
+        """
+        b = self.batch()
+        for album in self.albums_get()["Albums"]:
+            b.albums_getInfo(albumId=album["id"], albumKey=album["Key"])
+        return (info["Album"] for params, info in b() if info["Album"]["ImageCount"] == 0)
 
-  def tagcloud(self, kwfunc=None):
-    """
-    Compute the occurrence count for all keywords for all images in all albums.
-    
-    @keyword kwfunc: function taking a single string and returning a list of keywords
-    @return: a tuple of (number of albums, number of images, {keyword: occurences})
-    """
-    b = self.batch()
-    albums = self.albums_get()["Albums"]
-    for album in albums:
-      b.images_get(AlbumID=album["id"], AlbumKey=album["Key"], Heavy=True)
+    def unused_categories(self):
+        """Returns a generator of categories or subcategories with no
+        albums.
 
-    images = 0
-    kwfunc = kwfunc or kwsplit
-    cloud = collections.defaultdict(lambda: 0)
-    for params, response in b():
-      album = response["Album"]
-      images += album["ImageCount"]
-      for m in (x for x in (y["Keywords"].strip() for y in album["Images"]) if x):
-        for k in kwfunc(m):
-          cloud[k] = cloud[k] + 1
+        @return: a generator of [sub]categories with no associated albums
+        """
+        used = dict()
+        albums = self.albums_get()["Albums"]
+        for album in albums:
+            category = album["Category"]
+            used[("category", category["id"])] = category
+            subcategory = album.get("SubCategory", None)
+            if subcategory:
+                used[("subcategory", album["SubCategory"]["id"])] = subcategory
+        tree = self.categories_getTree()
+        for c in tree["Categories"]:
+            cid = ("category", c["id"])
+            if not cid in used:
+                c["Type"] = "Category"
+                yield c
+            for s in c["SubCategories"]:
+                sid = ("subcategory", s["id"])
+                if not sid in used:
+                    s["Type"] = "SubCategory"
+                    yield s
 
-    return (len(albums), images, cloud)
+    def tagcloud(self, kwfunc=None):
+        """
+        Compute the occurrence count for all keywords for all images in all albums.
+
+        @keyword kwfunc: function taking a single string and returning a list of keywords
+        @return: a tuple of (number of albums, number of images, {keyword: occurences})
+        """
+        b = self.batch()
+        albums = self.albums_get()["Albums"]
+        for album in albums:
+            b.images_get(AlbumID=album["id"], AlbumKey=album["Key"], Heavy=True)
+
+        images = 0
+        kwfunc = kwfunc or kwsplit
+        cloud = collections.defaultdict(lambda: 0)
+        for params, response in b():
+            album = response["Album"]
+            images += album["ImageCount"]
+            for m in (x for x in (y["Keywords"].strip() for y in album["Images"]) if x):
+                for k in kwfunc(m):
+                    cloud[k] = cloud[k] + 1
+
+        return (len(albums), images, cloud)
+

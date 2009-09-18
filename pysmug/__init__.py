@@ -20,12 +20,13 @@
 
 """A high-performance client to the SmugMug API.
 
- This client supports the entire set of methods available through smugmug
- both serially and in batch.
+    This client supports the entire set of methods available through smugmug
+    both serially and in batch.
 
- References:
-   - U{pysmug <http://code.google.com/p/pysmug>}
-   - U{SmugMug API <http://www.smugmug.com>}
+    References::
+
+        - U{pysmug <http://code.google.com/p/pysmug>}
+        - U{SmugMug API <http://www.smugmug.com>}
 """
 
 __version__ = "0.6"
@@ -34,60 +35,60 @@ from pysmug.smugtool import SmugTool
 from pysmug.smugmug import SmugMug, SmugBatch, SmugMugException
 
 def login(conf=None, klass=None, proxy=None):
-  """Login to smugmug using the contents of the configuration file.
+    """Login to smugmug using the contents of the configuration file.
 
-  If no configuration file is specified then a file named C{.pysmugrc} in
-  the user's home directory is used if it exists.
-  
-  The format is a standard configuration parseable by C{ConfigParser}.  The main
-  section C{pysmug} is required.  The key C{login} references which section to use
-  for authentication with SmugMug.  The key C{smugmug} is optional and can specify
-  an alternate C{SmugMug} class to instantiate.  This is an example file::
+    If no configuration file is specified then a file named C{.pysmugrc} in
+    the user's home directory is used if it exists.
 
-    [pysmug]
-    login=login_withHash
-    smugmug=pysmug.SmugTool
+    The format is a standard configuration parseable by C{ConfigParser}. The main
+    section C{pysmug} is required.The key C{login} references which section to use
+    for authentication with SmugMug. The key C{smugmug} is optional and can specify
+    an alternate C{SmugMug} class to instantiate. This is an example file::
 
-    [login_withHash]
-    APIKey = <my api key>
-    userId = <my user id>
-    passwordHash = <my password hash>
+        [pysmug]
+        login=login_withHash
+        smugmug=pysmug.SmugTool
 
-    [login_anonymously]
-    APIKey = <my api key>
+        [login_withHash]
+        APIKey = <my api key>
+        userId = <my user id>
+        passwordHash = <my password hash>
 
-  @type conf: string
-  @param conf: path to a configuration file
-  @type klass: C{SmugMug} class
-  @param klass: class to instantiate
-  @param proxy: address of proxy server if one is required (http[s]://localhost[:8080])
-  @raise ValueError: if no configuration file is found
-  """
-  import os
-  from ConfigParser import ConfigParser
+        [login_anonymously]
+        APIKey = <my api key>
 
-  if not conf:
-    home = os.environ.get("HOME", None)
-    if not home:
-      raise ValueError("unknown home directory")
-    conf = os.path.join(home, ".pysmugrc")
-    if not os.path.exists(conf):
-      raise ValueError("'%s' not found" % (conf))
+    @type conf: string
+    @param conf: path to a configuration file
+    @type klass: C{SmugMug} class
+    @param klass: class to instantiate
+    @param proxy: address of proxy server if one is required (http[s]://localhost[:8080])
+    @raise ValueError: if no configuration file is found
+    """
+    import os
+    from ConfigParser import ConfigParser
 
-  config = ConfigParser()
-  config.optionxform = str
-  config.read(conf)
+    if not conf:
+        home = os.environ.get("HOME", None)
+        if not home:
+            raise ValueError("unknown home directory")
+        conf = os.path.join(home, ".pysmugrc")
+        if not os.path.exists(conf):
+            raise ValueError("'%s' not found" % (conf))
 
-  if not klass:
-    klass = SmugMug
-    if config.has_option("pysmug", "smugmug"):
-      path = config.get("pysmug", "smugmug")
-      i = path.rfind(".")
-      module, attr = path[:i], path[i+1:]
-      mod = __import__(module, globals(), locals(), [attr])
-      klass = getattr(mod, attr)
-  m = klass(proxy=proxy)
+    config = ConfigParser()
+    config.optionxform = str
+    config.read(conf)
 
-  auth = config.get("pysmug", "login")
-  keys = dict(config.items(auth))
-  return getattr(m, auth)(**keys)
+    if not klass:
+        klass = SmugMug
+        if config.has_option("pysmug", "smugmug"):
+            path = config.get("pysmug", "smugmug")
+            i = path.rfind(".")
+            module, attr = path[:i], path[i+1:]
+            mod = __import__(module, globals(), locals(), [attr])
+            klass = getattr(mod, attr)
+    m = klass(proxy=proxy)
+
+    auth = config.get("pysmug", "login")
+    keys = dict(config.items(auth))
+    return getattr(m, auth)(**keys)
