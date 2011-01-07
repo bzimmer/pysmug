@@ -143,6 +143,9 @@ class SmugBase(object):
         c.response = cStringIO.StringIO()
         c.setopt(c.WRITEFUNCTION, c.response.write)
 
+        c.setopt(c.COOKIEJAR, "cookie.txt")
+        c.setopt(c.COOKIEFILE, "cookie.txt")
+
         if self.verbose:
             c.setopt(c.VERBOSE, True)
             c.setopt(c.DEBUGFUNCTION, self.verbose)
@@ -227,7 +230,7 @@ class SmugBase(object):
         filename = os.path.split(FileName)[-1] if FileName else ""
         fingerprint = md5(Data).hexdigest()
         image = cStringIO.StringIO(Data)
-        url = "%s://upload.smugmug.com/%s" % (self.protocol, filename)
+        url = "%s://upload.smugmug.com/%s" % ("http", filename)
 
         headers = [
             "Host: upload.smugmug.com",
@@ -461,4 +464,3 @@ class SmugBatch(SmugBase):
         for a in self._multi(connections, f):
             r = {"method":"pysmug.images.download", "stat":"ok", "Image":{"FileName":a[1]}}
             yield (args, r)
-

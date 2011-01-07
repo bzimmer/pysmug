@@ -58,6 +58,7 @@ methods = set([
     'smugmug.images.changeSettings',
     'smugmug.images.crop',
     'smugmug.images.delete',
+    'smugmug.images.download',
     'smugmug.images.get',
     'smugmug.images.getEXIF',
     'smugmug.images.getInfo',
@@ -105,4 +106,3 @@ methods = set([
 ])
 """Valid methods for the SmugMug (+ extended) API.
 """
-

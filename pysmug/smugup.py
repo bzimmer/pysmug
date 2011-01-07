@@ -58,7 +58,7 @@ def smugup(opts, args):
     # upload
     logger.info("uploading %d files", n)
     for i, (params, result) in enumerate(b()):
-        logger.info("uploaded (%d/%d) %s", i, n, result)
+        logger.info("uploaded (%d/%d) %s", i+1, n, result)
 
 def main(argv=None):
     fmt = '%(asctime)s|%(name)s|%(levelname)s|%(funcName)s|%(message)s'
@@ -75,4 +75,3 @@ def main(argv=None):
         return
 
     smugup(opts, args)
-

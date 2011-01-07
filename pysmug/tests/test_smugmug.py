@@ -164,4 +164,3 @@ class PySmugTest(unittest.TestCase):
         assert m.concurrent == 10
         m = SmugBatch(concurrent=5)
         assert m.concurrent == 5
-

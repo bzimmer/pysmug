@@ -95,4 +95,3 @@ def smugmug_keywords(fn):
                 kwargs[key] = value
         return fn(*args, **kwargs)
     return mg
-

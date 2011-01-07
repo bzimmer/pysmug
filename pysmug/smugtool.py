@@ -198,4 +198,3 @@ class SmugTool(SmugMug):
                     cloud[k] = cloud[k] + 1
 
         return (len(albums), images, cloud)
-

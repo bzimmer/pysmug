@@ -244,4 +244,3 @@ def main(argv=None):
         p = opts.predicate and Predicate(opts.predicate) or None
         for a in sd.albums(fields=opts.fields, predicate=p):
             printer(sorted(a))
-
